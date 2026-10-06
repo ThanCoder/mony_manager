@@ -1,7 +1,7 @@
 import 'package:cfb_store/cfb_store.dart';
 import 'package:flutter/material.dart';
-import 'package:mony_manager/keys.dart';
-import 'package:mony_manager/platforms/platform_app_switcher.dart';
+import 'package:money_manager/keys.dart';
+import 'package:money_manager/platforms/platform_app_switcher.dart';
 import 'package:t_widgets/t_widgets.dart';
 
 class PlatformApp extends StatefulWidget {

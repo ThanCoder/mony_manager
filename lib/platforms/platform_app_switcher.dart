@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mony_manager/platforms/mobile/mobile_home_screen.dart';
+import 'package:money_manager/platforms/mobile/mobile_home_screen.dart';
 
 class PlatformAppSwitcher extends StatelessWidget {
   const PlatformAppSwitcher({super.key});

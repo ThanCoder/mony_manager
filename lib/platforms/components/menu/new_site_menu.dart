@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:mony_manager/core/models/work_site.dart';
-import 'package:mony_manager/core/work_site_data.dart';
+import 'package:money_manager/core/controller/i_controller.dart';
+import 'package:money_manager/core/controller/my_work_site_controller.dart';
+import 'package:money_manager/core/models/work_site.dart';
+import 'package:money_manager/core/work_site_data.dart';
+import 'package:money_manager/platforms/components/menu/new_work_site_sheet.dart';
+import 'package:t_widgets/t_widgets.dart';
 
 class NewSiteMenu extends StatefulWidget {
   const new({super.key});
@@ -10,19 +14,36 @@ class NewSiteMenu extends StatefulWidget {
 }
 
 class _NewSiteMenuState extends State<NewSiteMenu> {
+  final con = ControllerManager.read<MyWorkSiteController>();
+  void newWorkSite(WorkSite site) {
+    context.pop();
+    NewWorkSiteSheet.show(
+      context,
+      onSave: (site) {
+        con.box.add(site);
+      },
+    );
+  }
+
   ColorScheme get col => Theme.of(context).colorScheme;
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: workSiteList.length,
-      itemBuilder: (context, index) => _listItem(workSiteList[index]),
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ListView.separated(
+        separatorBuilder: (context, index) => SizedBox(height: 10),
+        itemCount: workSiteList.length,
+        itemBuilder: (context, index) => _listItem(workSiteList[index]),
+      ),
     );
   }
 
   Widget _listItem(WorkSite site) {
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        newWorkSite(site);
+      },
       child: Container(
         padding: .symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
@@ -51,6 +72,8 @@ class _NewSiteMenuState extends State<NewSiteMenu> {
                 ),
               ],
             ),
+            Spacer(),
+            Icon(Icons.add_circle_outline),
           ],
         ),
       ),

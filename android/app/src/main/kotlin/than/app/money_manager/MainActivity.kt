@@ -1,4 +1,4 @@
-package than.app.mony_manager
+package than.app.money_manager
 
 import io.flutter.embedding.android.FlutterActivity
 

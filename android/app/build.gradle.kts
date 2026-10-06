@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "than.app.mony_manager"
+    namespace = "than.app.money_manager"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "than.app.mony_manager"
+        applicationId = "than.app.money_manager"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

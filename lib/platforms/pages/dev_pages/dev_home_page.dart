@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mony_manager/platforms/components/dialog/error_alert_dialog.dart';
+import 'package:money_manager/platforms/components/dialog/error_alert_dialog.dart';
 import 'package:t_widgets/t_widgets.dart';
 import 'package:url_launcher/url_launcher.dart';
 

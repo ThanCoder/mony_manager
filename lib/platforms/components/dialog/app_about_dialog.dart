@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mony_manager/core/utils/app_util.dart';
+import 'package:money_manager/core/utils/app_util.dart';
 
 class AppAboutDialogListTile extends StatelessWidget {
   const new({super.key, required this.appDesc});

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mony_manager/platforms/mobile/mobile_home_page.dart';
-import 'package:mony_manager/platforms/pages/more_page.dart';
+import 'package:money_manager/platforms/mobile/mobile_home_page.dart';
+import 'package:money_manager/platforms/pages/more_page.dart';
 
 class MobileHomeScreen extends StatefulWidget {
   const new({super.key});

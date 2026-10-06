@@ -22,7 +22,7 @@ class AppUtil {
 
   Future<void> init() async {
     final info = await PackageInfo.fromPlatform();
-    appName = info.appName;
+    appName = info.appName.split('_').map((e) => e.capitalize).join(' ');
     packageName = info.packageName;
     version = info.version;
 

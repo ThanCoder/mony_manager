@@ -1,4 +1,4 @@
-name: mony_manager
+name: money_manager
 description: "A new Flutter project."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 repository: https://github.com/ThanCoder/mony_manager.git
@@ -27,6 +27,7 @@ dependencies:
     git: https://github.com/ThanCoder/t_client
   url_launcher: ^6.3.2
   path_provider: ^2.1.6
+  uuid: ^4.6.0
 
 dev_dependencies:
   flutter_test:
@@ -34,7 +35,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   change_app_package_name: ^1.5.0
   # dart run change_app_package_name:main [com.new.package.name]
-  # dart run change_app_package_name:main than.app.mony_manager
+  # dart run change_app_package_name:main than.app.money_manager
   flutter_launcher_icons: ^0.14.4
   # dart run flutter_launcher_icons
 
