@@ -18,7 +18,7 @@ class PlatformAppSwitcher extends StatelessWidget {
     //     },
     //   );
     // }
-    // // final isMobile = constraints.maxWidth < 600;
+    // final isMobile = constraints.maxWidth < 600;
     // final isMobile = TPlatform.isMobile;
     // if (isMobile) {
     //   return MobileHome();

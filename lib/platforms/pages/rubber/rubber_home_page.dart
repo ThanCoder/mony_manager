@@ -1,6 +1,12 @@
+import 'package:dart_core_extensions/dart_core_extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:money_manager/core/controller/i_controller.dart';
+import 'package:money_manager/core/controller/rubber_site_controller.dart';
+import 'package:money_manager/core/models/farm/rubber.dart';
 import 'package:money_manager/core/models/my_work_site.dart';
+import 'package:money_manager/core/work_site_data.dart';
 import 'package:money_manager/platforms/components/menu/add_rubber_daily_work_sheet.dart';
+import 'package:money_manager/platforms/pages/rubber/rubber_item_menu.dart';
 
 class RubberHomePage extends StatefulWidget {
   const new({super.key, required this.site});
@@ -19,15 +25,85 @@ class _RubberHomePageState extends State<RubberHomePage> {
     super.initState();
   }
 
+  final con = ControllerManager.read<RubberSiteController>();
+  final currentDate = DateTime.now();
+  int? get currentDayRubberSlice {
+    for (var d in con.list) {
+      if (d.endWorkTime.month == currentDate.month &&
+          d.endWorkTime.day == currentDate.day) {
+        return d.rubberSliceCount;
+      }
+    }
+    return null;
+  }
+
+  int get unpaidRubberSlices {
+    return con.list.fold(0, (prev, ele) {
+      if (!ele.paid) {
+        return prev + ele.rubberSliceCount;
+      }
+      return 0;
+    });
+  }
+
+  List<Widget> get headerList => [
+    // _SummaryCard(
+    //   icon: Icons.people_outline,
+    //   title: 'အလုပ်သမားများ',
+    //   value: '12',
+    // ),
+    if (currentDayRubberSlice != null)
+      _SummaryCard(
+        icon: Icons.eco_outlined,
+        title: 'ဒီနေ့ အစီးပြား',
+        value: currentDayRubberSlice.toString(),
+        suffix: ' slices',
+      ),
+    _SummaryCard(
+      icon: Icons.eco_outlined,
+      title: 'မရောင်းရသေးတဲ့ အစီးပြား',
+      value: unpaidRubberSlices.toString(),
+      suffix: ' slices',
+    ),
+    _SummaryCard(
+      icon: Icons.calendar_month_outlined,
+      title: 'အလုပ်လုပ်ခဲ့တဲ့နေ့',
+      value: '${con.list.length}',
+    ),
+
+    InkWell(
+      borderRadius: .circular(18),
+      onTap: () {},
+      child: _SummaryCard(
+        icon: Icons.payments_outlined,
+        title: 'အရင်အပတ်က ဝင်ငွေ',
+        value: '0',
+        suffix: ' MMK >',
+      ),
+    ),
+    // _SummaryCard(
+    //   icon: Icons.payments_outlined,
+    //   title: 'ဝင်ငွေအားလုံး',
+    //   value: '450,000',
+    //   suffix: ' MMK',
+    // ),
+  ];
+
   void _showAddDailyWork(BuildContext context) {
     AddRubberDailyWorkSheet.show(
       context,
       sites: [site],
-      workers: const ['Worker 1', 'Worker 2', 'Worker 3'],
+      workers: workers,
       onSave: (work) {
-        // Save to DualStore
+        con.add(work);
       },
     );
+  }
+
+  void showMenu() {}
+  void showRubberDetail(RubberDailyWork work) {}
+  void showRubberItemMenu(RubberDailyWork work) {
+    RubberItemMenu.show(context, work,site: widget.site);
   }
 
   @override
@@ -39,103 +115,30 @@ class _RubberHomePageState extends State<RubberHomePage> {
       appBar: AppBar(
         title: Text(widget.site.title),
         actions: [
-          IconButton(
-            onPressed: () {
-              // Site settings
-            },
-            icon: const Icon(Icons.more_vert),
-          ),
+          if (TPlatform.isDesktop)
+            IconButton(
+              onPressed: con.fetchList,
+              icon: const Icon(Icons.refresh_rounded),
+            ),
+          IconButton(onPressed: showMenu, icon: const Icon(Icons.more_vert)),
         ],
       ),
 
-      body: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Summary
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _SummaryCard(
-                          icon: Icons.people_outline,
-                          title: 'Workers',
-                          value: '12',
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _SummaryCard(
-                          icon: Icons.eco_outlined,
-                          title: 'Today',
-                          value: '850',
-                          suffix: ' slices',
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _SummaryCard(
-                          icon: Icons.calendar_month_outlined,
-                          title: 'Work Days',
-                          value: '24',
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _SummaryCard(
-                          icon: Icons.payments_outlined,
-                          title: 'Income',
-                          value: '450,000',
-                          suffix: ' MMK',
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  Row(
-                    children: [
-                      Text(
-                        'Daily Work',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: () {
-                          // View all
-                        },
-                        child: const Text('View All'),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-                ],
-              ),
+      body: RefreshIndicator.adaptive(
+        onRefresh: con.fetchList,
+        child: CustomScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: _header(theme),
             ),
-          ),
 
-          // Daily work list
-          SliverList.builder(
-            itemCount: 10,
-            itemBuilder: (context, index) {
-              return _dailyWorkItem(context, index);
-            },
-          ),
-          SliverToBoxAdapter(child: SizedBox(height: 90)),
-        ],
+            // Daily work list
+            _listWidget(),
+            SliverToBoxAdapter(child: SizedBox(height: 90)),
+          ],
+        ),
       ),
 
       floatingActionButton: FloatingActionButton.extended(
@@ -148,7 +151,65 @@ class _RubberHomePageState extends State<RubberHomePage> {
     );
   }
 
-  Widget _dailyWorkItem(BuildContext context, int index) {
+  SliverToBoxAdapter _header(ThemeData theme) {
+    return SliverToBoxAdapter(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Summary
+          StreamBuilder(
+            stream: con.events.whereType<RubberSiteDataChanged>(),
+            builder: (context, asyncSnapshot) {
+              return Wrap(spacing: 12, runSpacing: 12, children: headerList);
+            },
+          ),
+
+          const SizedBox(height: 12),
+
+          Row(
+            children: [
+              Text(
+                'Daily Work',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () {
+                  // View all
+                },
+                child: const Text('View All'),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _listWidget() {
+    return StreamBuilder(
+      stream: con.events.whereType<RubberSiteDataChanged>(),
+      builder: (context, asyncSnapshot) {
+        if (con.list.isEmpty) {
+          return SliverFillRemaining(
+            child: Center(child: Text('စာရင်းမရှိပါ')),
+          );
+        }
+        return SliverList.builder(
+          itemCount: con.list.length,
+          itemBuilder: (context, index) {
+            return _dailyWorkItem(con.list[index]);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _dailyWorkItem(RubberDailyWork rubber) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -156,11 +217,17 @@ class _RubberHomePageState extends State<RubberHomePage> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          // Open daily work detail
-        },
-        child: Padding(
+        onTap: () => showRubberDetail(rubber),
+        onLongPress: () => showRubberItemMenu(rubber),
+        onSecondaryTap: () => showRubberItemMenu(rubber),
+        child: Container(
           padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: rubber.paid
+                ? colorScheme.surfaceContainer
+                : const Color.fromARGB(255, 37, 95, 39),
+            borderRadius: .circular(14),
+          ),
           child: Row(
             children: [
               Container(
@@ -183,7 +250,7 @@ class _RubberHomePageState extends State<RubberHomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Worker ${index + 1}',
+                      rubber.workerId,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -197,7 +264,7 @@ class _RubberHomePageState extends State<RubberHomePage> {
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    Text('2026-10-11'),
+                    Text(rubber.date),
                   ],
                 ),
               ),
@@ -206,7 +273,7 @@ class _RubberHomePageState extends State<RubberHomePage> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${650 + index * 20}',
+                    '${rubber.rubberSliceCount}',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),

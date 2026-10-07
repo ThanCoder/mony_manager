@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:money_manager/core/models/work_site.dart';
 
+const workers = ['Worker 1', 'Worker 2', 'Worker 3'];
+
 const workSiteList = <WorkSite>[
   // .new(
   //   title: 'ငွေစုဗူး',

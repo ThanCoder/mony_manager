@@ -1,4 +1,6 @@
+import 'package:dart_core_extensions/dart_core_extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:money_manager/core/models/farm/rubber.dart';
 import 'package:money_manager/core/models/my_work_site.dart';
 
@@ -8,8 +10,9 @@ class AddRubberDailyWorkSheet extends StatefulWidget {
     required this.sites,
     required this.workers,
     this.onSave,
+    this.work,
   });
-
+  final RubberDailyWork? work;
   final List<MyWorkSite> sites;
   final List<String> workers;
   final void Function(RubberDailyWork work)? onSave;
@@ -19,6 +22,7 @@ class AddRubberDailyWorkSheet extends StatefulWidget {
     required List<MyWorkSite> sites,
     required List<String> workers,
     void Function(RubberDailyWork work)? onSave,
+    RubberDailyWork? work,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -30,6 +34,7 @@ class AddRubberDailyWorkSheet extends StatefulWidget {
           sites: sites,
           workers: workers,
           onSave: onSave,
+          work: work,
         );
       },
     );
@@ -44,12 +49,38 @@ class _AddRubberDailyWorkSheetState extends State<AddRubberDailyWorkSheet> {
   final _formKey = GlobalKey<FormState>();
 
   final _sliceController = TextEditingController();
-
+  RubberDailyWork? work;
   MyWorkSite? _siteId;
   String? _workerId;
+  bool paid = false;
 
-  DateTime _startWorkTime = DateTime.now();
-  DateTime _endWorkTime = DateTime.now();
+  DateTime _startWorkTime = DateTime.now().copyWith(hour: 3);
+  DateTime _endWorkTime = DateTime.now().copyWith(hour: 8);
+  DateTime _currentDate = DateTime.now();
+
+  @override
+  void initState() {
+    final work = widget.work;
+    if (work != null) {
+      this.work = work;
+
+      paid = work.paid;
+      _siteId = work.siteId;
+      _workerId = work.workerId;
+      _startWorkTime = work.startWorkTime;
+      _endWorkTime = work.endWorkTime;
+      _currentDate = work.endWorkTime;
+      _sliceController.text = work.rubberSliceCount.toString();
+    } else {
+      if (widget.sites.isNotEmpty) {
+        _siteId = widget.sites.first;
+      }
+      if (widget.workers.isNotEmpty) {
+        _workerId = widget.workers.first;
+      }
+    }
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -84,6 +115,21 @@ class _AddRubberDailyWorkSheetState extends State<AddRubberDailyWorkSheet> {
     });
   }
 
+  void _chooseDate() async {
+    final res = await showDatePicker(
+      context: context,
+      initialDate: _endWorkTime,
+      currentDate: _currentDate,
+      firstDate: .new(2026),
+      lastDate: _endWorkTime,
+    );
+    if (res == null) return;
+    if (!mounted) return;
+    setState(() {
+      _currentDate = res;
+    });
+  }
+
   void _save() {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -103,15 +149,45 @@ class _AddRubberDailyWorkSheetState extends State<AddRubberDailyWorkSheet> {
       return;
     }
 
-    final work = RubberDailyWork(
-      siteId: _siteId!,
-      workerId: _workerId!,
-      startWorkTime: _startWorkTime,
-      endWorkTime: _endWorkTime,
-      rubberSliceCount: int.parse(_sliceController.text),
-    );
+    if (work != null) {
+      widget.onSave?.call(
+        work!.copyWith(
+          siteId: _siteId!,
+          workerId: _workerId!,
+          startWorkTime: _currentDate.copyWith(
+            hour: _startWorkTime.hour,
+            minute: _startWorkTime.minute,
+          ),
+          endWorkTime: _currentDate.copyWith(
+            hour: _endWorkTime.hour,
+            minute: _endWorkTime.minute,
+          ),
+          rubberSliceCount: int.parse(_sliceController.text),
+          paid: paid,
+          otherWorkers: [],
+        ),
+      );
+    }
+    // new
+    else {
+      final work = RubberDailyWork(
+        siteId: _siteId!,
+        workerId: _workerId!,
+        startWorkTime: _currentDate.copyWith(
+          hour: _startWorkTime.hour,
+          minute: _startWorkTime.minute,
+        ),
+        endWorkTime: _currentDate.copyWith(
+          hour: _endWorkTime.hour,
+          minute: _endWorkTime.minute,
+        ),
+        rubberSliceCount: int.parse(_sliceController.text),
+        paid: paid,
+        otherWorkers: [],
+      );
 
-    widget.onSave?.call(work);
+      widget.onSave?.call(work);
+    }
 
     Navigator.pop(context);
   }
@@ -142,32 +218,31 @@ class _AddRubberDailyWorkSheetState extends State<AddRubberDailyWorkSheet> {
               ),
 
               const SizedBox(height: 24),
-
-              DropdownButtonFormField<MyWorkSite>(
-                initialValue: _siteId,
-                decoration: const InputDecoration(
-                  labelText: 'Work Site',
-                  prefixIcon: Icon(Icons.location_on_outlined),
-                  border: OutlineInputBorder(),
+              if (widget.work == null)
+                DropdownButtonFormField<MyWorkSite>(
+                  initialValue: _siteId,
+                  decoration: const InputDecoration(
+                    labelText: 'Work Site',
+                    prefixIcon: Icon(Icons.location_on_outlined),
+                    border: OutlineInputBorder(),
+                  ),
+                  items: [
+                    for (final site in widget.sites)
+                      DropdownMenuItem(value: site, child: Text(site.title)),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _siteId = value;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Select a work site';
+                    }
+                    return null;
+                  },
                 ),
-                items: [
-                  for (final site in widget.sites)
-                    DropdownMenuItem(value: site, child: Text(site.title)),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _siteId = value;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Select a work site';
-                  }
-                  return null;
-                },
-              ),
-
-              const SizedBox(height: 16),
+              if (widget.work == null) const SizedBox(height: 16),
 
               DropdownButtonFormField<String>(
                 initialValue: _workerId,
@@ -203,6 +278,13 @@ class _AddRubberDailyWorkSheetState extends State<AddRubberDailyWorkSheet> {
               ),
 
               const SizedBox(height: 10),
+              ListTile(
+                tileColor: colorScheme.surfaceContainer,
+                shape: RoundedRectangleBorder(borderRadius: .circular(14)),
+                title: Text('ရက်စွဲ: ${_currentDate.formatTimeAgo()}'),
+                onTap: _chooseDate,
+              ),
+              const SizedBox(height: 10),
 
               Row(
                 children: [
@@ -231,6 +313,7 @@ class _AddRubberDailyWorkSheetState extends State<AddRubberDailyWorkSheet> {
               TextFormField(
                 controller: _sliceController,
                 keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: const InputDecoration(
                   labelText: 'Rubber Slices',
                   hintText: 'Enter number of rubber slices',
@@ -254,11 +337,21 @@ class _AddRubberDailyWorkSheetState extends State<AddRubberDailyWorkSheet> {
               ),
 
               const SizedBox(height: 24),
+              SwitchListTile.adaptive(
+                title: Text('အစီးပြား ရောင်းပြီးပြီလား'),
+                value: paid,
+                onChanged: (value) {
+                  setState(() {
+                    paid = value;
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
 
               FilledButton.icon(
                 onPressed: _save,
                 icon: const Icon(Icons.check),
-                label: const Text('Save Work'),
+                label: Text(work != null ? 'Update Work' : 'Save Work'),
                 style: FilledButton.styleFrom(
                   minimumSize: const Size.fromHeight(52),
                   backgroundColor: colorScheme.primary,
