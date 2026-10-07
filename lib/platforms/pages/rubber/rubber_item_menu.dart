@@ -5,7 +5,7 @@ import 'package:money_manager/core/models/farm/rubber.dart';
 import 'package:money_manager/core/models/my_work_site.dart';
 import 'package:money_manager/core/work_site_data.dart';
 import 'package:money_manager/platforms/components/dialog/confirm_alert_dialog.dart';
-import 'package:money_manager/platforms/components/menu/add_rubber_daily_work_sheet.dart';
+import 'package:money_manager/platforms/pages/rubber/add_rubber_daily_work_sheet.dart';
 import 'package:t_widgets/t_widgets.dart';
 
 class RubberItemMenu extends StatefulWidget {

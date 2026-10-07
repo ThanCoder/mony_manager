@@ -5,7 +5,7 @@ import 'package:money_manager/core/controller/rubber_site_controller.dart';
 import 'package:money_manager/core/models/farm/rubber.dart';
 import 'package:money_manager/core/models/my_work_site.dart';
 import 'package:money_manager/core/work_site_data.dart';
-import 'package:money_manager/platforms/components/menu/add_rubber_daily_work_sheet.dart';
+import 'package:money_manager/platforms/pages/rubber/add_rubber_daily_work_sheet.dart';
 import 'package:money_manager/platforms/pages/rubber/rubber_item_menu.dart';
 
 class RubberHomePage extends StatefulWidget {
@@ -103,7 +103,7 @@ class _RubberHomePageState extends State<RubberHomePage> {
   void showMenu() {}
   void showRubberDetail(RubberDailyWork work) {}
   void showRubberItemMenu(RubberDailyWork work) {
-    RubberItemMenu.show(context, work,site: widget.site);
+    RubberItemMenu.show(context, work, site: widget.site);
   }
 
   @override
@@ -225,7 +225,7 @@ class _RubberHomePageState extends State<RubberHomePage> {
           decoration: BoxDecoration(
             color: rubber.paid
                 ? colorScheme.surfaceContainer
-                : const Color.fromARGB(255, 37, 95, 39),
+                : colorScheme.primaryContainer,
             borderRadius: .circular(14),
           ),
           child: Row(

@@ -54,8 +54,8 @@ class _AddRubberDailyWorkSheetState extends State<AddRubberDailyWorkSheet> {
   String? _workerId;
   bool paid = false;
 
-  DateTime _startWorkTime = DateTime.now().copyWith(hour: 3);
-  DateTime _endWorkTime = DateTime.now().copyWith(hour: 8);
+  DateTime _startWorkTime = DateTime.now().copyWith(hour: 3, minute: 30);
+  DateTime _endWorkTime = DateTime.now().copyWith(hour: 8, minute: 30);
   DateTime _currentDate = DateTime.now();
 
   @override

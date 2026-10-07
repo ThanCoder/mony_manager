@@ -97,9 +97,9 @@ extension RubberDailyWorkX on List<RubberDailyWork> {
   void sortDate({bool newest = true}) {
     sort((a, b) {
       if (newest) {
-        return a.endWorkTime.compareTo(b.endWorkTime);
-      } else {
         return a.endWorkTime.compareTo(a.endWorkTime);
+      } else {
+        return a.endWorkTime.compareTo(b.endWorkTime);
       }
     });
   }
