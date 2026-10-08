@@ -134,7 +134,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "8f35a8fceb8accb9318a5904ee3afa27fd1ae5e2"
+      resolved-ref: "2e9e0e929f723947d9bd72ed3c72161dcaf4d8d7"
       url: "https://github.com/ThanCoder/dual_store.git"
     source: git
     version: "0.2.0"

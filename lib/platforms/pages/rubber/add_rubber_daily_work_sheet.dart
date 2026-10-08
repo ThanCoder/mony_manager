@@ -3,18 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:money_manager/core/models/farm/rubber.dart';
 import 'package:money_manager/core/models/my_work_site.dart';
+import 'package:uuid/v4.dart';
 
 class AddRubberDailyWorkSheet extends StatefulWidget {
   const AddRubberDailyWorkSheet({
     super.key,
     required this.sites,
-    required this.workers,
     this.onSave,
     this.work,
   });
   final RubberDailyWork? work;
   final List<MyWorkSite> sites;
-  final List<String> workers;
   final void Function(RubberDailyWork work)? onSave;
 
   static Future<void> show(
@@ -32,7 +31,6 @@ class AddRubberDailyWorkSheet extends StatefulWidget {
       builder: (_) {
         return AddRubberDailyWorkSheet(
           sites: sites,
-          workers: workers,
           onSave: onSave,
           work: work,
         );
@@ -51,7 +49,6 @@ class _AddRubberDailyWorkSheetState extends State<AddRubberDailyWorkSheet> {
   final _sliceController = TextEditingController();
   RubberDailyWork? work;
   MyWorkSite? _siteId;
-  String? _workerId;
   bool paid = false;
 
   DateTime _startWorkTime = DateTime.now().copyWith(hour: 3, minute: 30);
@@ -66,7 +63,7 @@ class _AddRubberDailyWorkSheetState extends State<AddRubberDailyWorkSheet> {
 
       paid = work.paid;
       _siteId = work.siteId;
-      _workerId = work.workerId;
+
       _startWorkTime = work.startWorkTime;
       _endWorkTime = work.endWorkTime;
       _currentDate = work.endWorkTime;
@@ -74,9 +71,6 @@ class _AddRubberDailyWorkSheetState extends State<AddRubberDailyWorkSheet> {
     } else {
       if (widget.sites.isNotEmpty) {
         _siteId = widget.sites.first;
-      }
-      if (widget.workers.isNotEmpty) {
-        _workerId = widget.workers.first;
       }
     }
     super.initState();
@@ -135,7 +129,7 @@ class _AddRubberDailyWorkSheetState extends State<AddRubberDailyWorkSheet> {
       return;
     }
 
-    if (_siteId == null || _workerId == null) {
+    if (_siteId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select site and worker')),
       );
@@ -153,7 +147,6 @@ class _AddRubberDailyWorkSheetState extends State<AddRubberDailyWorkSheet> {
       widget.onSave?.call(
         work!.copyWith(
           siteId: _siteId!,
-          workerId: _workerId!,
           startWorkTime: _currentDate.copyWith(
             hour: _startWorkTime.hour,
             minute: _startWorkTime.minute,
@@ -164,15 +157,15 @@ class _AddRubberDailyWorkSheetState extends State<AddRubberDailyWorkSheet> {
           ),
           rubberSliceCount: int.parse(_sliceController.text),
           paid: paid,
-          otherWorkers: [],
         ),
       );
     }
     // new
     else {
       final work = RubberDailyWork(
+        id: UuidV4().generate(),
         siteId: _siteId!,
-        workerId: _workerId!,
+
         startWorkTime: _currentDate.copyWith(
           hour: _startWorkTime.hour,
           minute: _startWorkTime.minute,
@@ -183,7 +176,6 @@ class _AddRubberDailyWorkSheetState extends State<AddRubberDailyWorkSheet> {
         ),
         rubberSliceCount: int.parse(_sliceController.text),
         paid: paid,
-        otherWorkers: [],
       );
 
       widget.onSave?.call(work);
@@ -242,31 +234,6 @@ class _AddRubberDailyWorkSheetState extends State<AddRubberDailyWorkSheet> {
                     return null;
                   },
                 ),
-              if (widget.work == null) const SizedBox(height: 16),
-
-              DropdownButtonFormField<String>(
-                initialValue: _workerId,
-                decoration: const InputDecoration(
-                  labelText: 'Worker',
-                  prefixIcon: Icon(Icons.person_outline),
-                  border: OutlineInputBorder(),
-                ),
-                items: [
-                  for (final id in widget.workers)
-                    DropdownMenuItem(value: id, child: Text(id)),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _workerId = value;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Select a worker';
-                  }
-                  return null;
-                },
-              ),
 
               const SizedBox(height: 20),
 

@@ -7,10 +7,11 @@ import 'package:money_manager/core/models/my_work_site.dart';
 import 'package:money_manager/core/work_site_data.dart';
 import 'package:money_manager/platforms/pages/rubber/add_rubber_daily_work_sheet.dart';
 import 'package:money_manager/platforms/pages/rubber/rubber_item_menu.dart';
+import 'package:money_manager/platforms/pages/rubber/rubber_sell_home_page.dart';
+import 'package:t_widgets/t_widgets.dart';
 
 class RubberHomePage extends StatefulWidget {
   const new({super.key, required this.site});
-
   final MyWorkSite site;
 
   @override
@@ -42,7 +43,7 @@ class _RubberHomePageState extends State<RubberHomePage> {
       if (!ele.paid) {
         return prev + ele.rubberSliceCount;
       }
-      return 0;
+      return prev;
     });
   }
 
@@ -73,7 +74,7 @@ class _RubberHomePageState extends State<RubberHomePage> {
 
     InkWell(
       borderRadius: .circular(18),
-      onTap: () {},
+      onTap: goRubberSellPage,
       child: _SummaryCard(
         icon: Icons.payments_outlined,
         title: 'အရင်အပတ်က ဝင်ငွေ',
@@ -88,6 +89,11 @@ class _RubberHomePageState extends State<RubberHomePage> {
     //   suffix: ' MMK',
     // ),
   ];
+  void goRubberSellPage() {
+    context.pushMaterialPageRoute(
+      builder: (mainCtx) => RubberSellHomePage(site: site),
+    );
+  }
 
   void _showAddDailyWork(BuildContext context) {
     AddRubberDailyWorkSheet.show(
@@ -234,12 +240,12 @@ class _RubberHomePageState extends State<RubberHomePage> {
                 width: 46,
                 height: 46,
                 decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
+                  color: colorScheme.tertiaryContainer,
                   borderRadius: BorderRadius.circular(13),
                 ),
                 child: Icon(
                   Icons.eco_outlined,
-                  color: colorScheme.onPrimaryContainer,
+                  color: colorScheme.onTertiaryContainer,
                 ),
               ),
 
@@ -249,12 +255,12 @@ class _RubberHomePageState extends State<RubberHomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      rubber.workerId,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    // Text(
+                    //   rubber.workerId,
+                    //   style: theme.textTheme.titleMedium?.copyWith(
+                    //     fontWeight: FontWeight.w600,
+                    //   ),
+                    // ),
 
                     const SizedBox(height: 4),
 

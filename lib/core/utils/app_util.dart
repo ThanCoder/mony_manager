@@ -5,6 +5,7 @@ import 'package:dart_core_extensions/dart_core_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:than_pkg_android/than_pkg_android.dart';
 import 'package:than_pkg_linux/than_pkg_linux.dart';
 
 class AppUtil {
@@ -56,5 +57,20 @@ class AppUtil {
       return _configDir.join(name);
     }
     return _configDir.path;
+  }
+
+  String getPlatformExternalConfigPath([String? name]) {
+    if (Platform.isAndroid) {
+      final p = ThanPkgAndroid.getInstance.pathHandler.getDeviceStoragePath();
+      final dir = Directory(p.join('Download').join(appName));
+      if (!dir.existsSync()) {
+        dir.createSync(recursive: true);
+      }
+      if (name != null) {
+        return dir.join(name);
+      }
+      return dir.path;
+    }
+    return getPlatformConfigPath(name);
   }
 }

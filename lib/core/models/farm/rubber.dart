@@ -1,4 +1,5 @@
 import 'package:dual_store/dual_store.dart';
+import 'package:money_manager/core/datetime_x.dart';
 import 'package:money_manager/core/models/my_work_site.dart';
 
 class RubberDailyWorkAdapter extends IDuBinaryMetaAdapter<RubberDailyWork> {
@@ -19,16 +20,14 @@ class RubberDailyWorkAdapter extends IDuBinaryMetaAdapter<RubberDailyWork> {
 class RubberDailyWork extends IDuModel {
   RubberDailyWork({
     required this.siteId,
-    required this.workerId,
     required this.startWorkTime,
     required this.endWorkTime,
     required this.rubberSliceCount,
     required this.paid,
-    required this.otherWorkers,
+    required this.id,
   });
-
+  final String id;
   final MyWorkSite siteId;
-  final String workerId;
   final DateTime startWorkTime;
 
   final DateTime endWorkTime;
@@ -36,59 +35,55 @@ class RubberDailyWork extends IDuModel {
   /// Number of rubber slices.
   final int rubberSliceCount;
   final bool paid;
-  final List<String> otherWorkers;
 
   String get date {
+    if (endWorkTime.isToday) return 'Today';
     final d = endWorkTime;
     return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'siteId': siteId.toJson(),
-      'workerId': workerId,
       'startWorkTime': startWorkTime.millisecondsSinceEpoch,
       'endWorkTime': endWorkTime.millisecondsSinceEpoch,
       'rubberSliceCount': rubberSliceCount,
       'paid': paid,
-      'otherWorkers': otherWorkers,
     };
   }
 
   factory RubberDailyWork.fromJson(Map<String, dynamic> json) {
     return RubberDailyWork(
+      id: json['id'],
       siteId: MyWorkSite.fromJson(json['siteId']),
-      workerId: json['workerId'],
       startWorkTime: DateTime.fromMillisecondsSinceEpoch(json['startWorkTime']),
       endWorkTime: DateTime.fromMillisecondsSinceEpoch(json['endWorkTime']),
       rubberSliceCount: json['rubberSliceCount'],
       paid: json['paid'],
-      otherWorkers: List<String>.from(json['otherWorkers']),
     );
   }
 
   @override
   String toString() {
-    return '''RubberDailyWork(siteId: $siteId, workerId: $workerId, startWorkTime: $startWorkTime, endWorkTime: $endWorkTime, rubberSliceCount: $rubberSliceCount, paid: $paid, otherWorkers: $otherWorkers)''';
+    return '''RubberDailyWork(id: $id, siteId: $siteId, startWorkTime: $startWorkTime, endWorkTime: $endWorkTime, rubberSliceCount: $rubberSliceCount, paid: $paid)''';
   }
 
   RubberDailyWork copyWith({
+    String? id,
     MyWorkSite? siteId,
-    String? workerId,
     DateTime? startWorkTime,
     DateTime? endWorkTime,
     int? rubberSliceCount,
     bool? paid,
-    List<String>? otherWorkers,
   }) {
     return RubberDailyWork(
+      id: id ?? this.id,
       siteId: siteId ?? this.siteId,
-      workerId: workerId ?? this.workerId,
       startWorkTime: startWorkTime ?? this.startWorkTime,
       endWorkTime: endWorkTime ?? this.endWorkTime,
       rubberSliceCount: rubberSliceCount ?? this.rubberSliceCount,
       paid: paid ?? this.paid,
-      otherWorkers: otherWorkers ?? this.otherWorkers,
     );
   }
 }
@@ -97,7 +92,7 @@ extension RubberDailyWorkX on List<RubberDailyWork> {
   void sortDate({bool newest = true}) {
     sort((a, b) {
       if (newest) {
-        return a.endWorkTime.compareTo(a.endWorkTime);
+        return b.endWorkTime.compareTo(a.endWorkTime);
       } else {
         return a.endWorkTime.compareTo(b.endWorkTime);
       }

@@ -9,6 +9,7 @@ class RubberSiteDataChanged extends IControllerEvent {}
 class RubberSiteController extends IController {
   final db = DB.store;
   List<RubberDailyWork> list = [];
+  Map<String, RubberDailyWork> map = {};
 
   DuBox<RubberDailyWork> get box => db.getBox<RubberDailyWork>();
 
@@ -26,14 +27,17 @@ class RubberSiteController extends IController {
     addEvent(RubberSiteDataChanged());
     list = await box.getAll();
     list.sortDate();
+    for (var d in list) {
+      map[d.id] = d;
+    }
 
     addEvent(RubberSiteDataChanged());
   }
 
   Future<void> add(RubberDailyWork work) async {
     list.add(work);
-    list.sortDate();
     await box.add(work);
+    list.sortDate();
     addEvent(RubberSiteDataChanged());
   }
 
@@ -46,7 +50,7 @@ class RubberSiteController extends IController {
     addEvent(RubberSiteDataChanged());
   }
 
-  void update(int generatedId,RubberDailyWork work) async {
+  Future<void> update(int generatedId, RubberDailyWork work) async {
     final index = list.indexWhere((e) => e.generatedId == generatedId);
     if (index != -1) {
       list[index] = work;
