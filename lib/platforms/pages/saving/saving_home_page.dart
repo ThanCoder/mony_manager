@@ -1,5 +1,14 @@
+import 'package:dart_core_extensions/dart_core_extensions.dart';
+import 'package:dual_store/dual_store.dart';
 import 'package:flutter/material.dart';
+import 'package:money_manager/core/datetime_x.dart';
+import 'package:money_manager/core/db.dart';
 import 'package:money_manager/core/models/my_work_site.dart';
+import 'package:money_manager/core/models/saving/money_transcation.dart';
+import 'package:money_manager/platforms/components/dialog/confirm_alert_dialog.dart';
+import 'package:money_manager/platforms/pages/saving/saving_transcation_sheet.dart';
+import 'package:intl/intl.dart';
+import 'package:t_widgets/t_widgets.dart';
 
 class SavingHomePage extends StatefulWidget {
   const new({super.key, required this.site});
@@ -20,13 +29,133 @@ class _SavingHomePageState extends State<SavingHomePage> {
     super.initState();
   }
 
+  final db = DB.store;
+  DuBox<MoneyTransaction> get box => db.getBox<MoneyTransaction>();
+  final currentDate = DateTime.now();
+
+  Future<void> init() async {
+    setState(() {});
+  }
+
+  double currentBlance(List<MoneyTransaction> list) {
+    double amount = 0;
+    for (var val in list) {
+      if (val.isIncome) {
+        amount += val.amount;
+      }
+      if (val.isExpense) {
+        amount -= val.amount;
+      }
+    }
+    return amount;
+  }
+
+  String formatMoney(double amount) {
+    final formatter = NumberFormat('#,###', 'en_US');
+    return formatter.format(amount);
+  }
+
+  void addTranscation(MoneyTransactionType type) async {
+    await SavingTranscationSheet.show(
+      context,
+      type: type,
+      onSaved: (trans) {
+        box.add(trans);
+      },
+    );
+  }
+
+  void editTranscation(MoneyTransaction trans) async {
+    await SavingTranscationSheet.show(
+      context,
+      type: trans.type,
+      editTrans: trans,
+      onSaved: (update) {
+        box.updateByid(trans.generatedId, value: update);
+      },
+    );
+  }
+
+  void delTrans(MoneyTransaction trans) async {
+    final conf = await showConfirmDialog(
+      context,
+      'Want To Delete?',
+      confirmColor: col.error,
+      confirmForegroundColor: col.onError,
+      confirmText: 'Delete Forever!',
+    );
+    if (!conf) return;
+    if (trans.generatedId == -1) {
+      return;
+    }
+    box.deleteById(trans.generatedId);
+  }
+
+  void showItemMenu(MoneyTransaction trans) async {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            spacing: 12,
+            children: [
+              ListTile(
+                tileColor: col.surfaceContainer,
+                shape: RoundedRectangleBorder(borderRadius: .circular(14)),
+                leading: Icon(Icons.edit_document),
+                title: Text('Edit'),
+                onTap: () {
+                  context.pop();
+                  editTranscation(trans);
+                },
+              ),
+              ListTile(
+                tileColor: col.errorContainer,
+                shape: RoundedRectangleBorder(borderRadius: .circular(14)),
+                leading: Icon(Icons.delete_forever_outlined),
+                title: Text('Delete'),
+                onTap: () {
+                  context.pop();
+                  delTrans(trans);
+                },
+              ),
+              SizedBox(height: 80),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  ColorScheme get col => Theme.of(context).colorScheme;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        actions: [
+          if (TPlatform.isDesktop)
+            IconButton(onPressed: init, icon: Icon(Icons.refresh_outlined)),
+        ],
+      ),
       body: CustomScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
         slivers: [
           SliverList.list(children: [_header]),
+          StreamBuilder(
+            stream: box.getSearchBox(searchType: .linear).getAllStream(),
+            builder: (context, snapshot) {
+              final list = snapshot.data ?? [];
+              list.sortDate();
+              return SliverPadding(
+                padding: .symmetric(vertical: 10, horizontal: 15),
+                sliver: _transList(list),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -104,12 +233,18 @@ class _SavingHomePageState extends State<SavingHomePage> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  '500,000 MMK',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onPrimaryContainer,
-                  ),
+                StreamBuilder(
+                  stream: box.getSearchBox(searchType: .linear).getAllStream(),
+                  builder: (context, snapshot) {
+                    final list = snapshot.data ?? [];
+                    return Text(
+                      '${formatMoney(currentBlance(list))} MMK',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onPrimaryContainer,
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -123,9 +258,7 @@ class _SavingHomePageState extends State<SavingHomePage> {
                 child: _ActionButton(
                   icon: Icons.add_circle_outline,
                   label: 'Income',
-                  onTap: () {
-                    // Add income
-                  },
+                  onTap: () => addTranscation(.income),
                 ),
               ),
 
@@ -135,9 +268,7 @@ class _SavingHomePageState extends State<SavingHomePage> {
                 child: _ActionButton(
                   icon: Icons.remove_circle_outline,
                   label: 'Expense',
-                  onTap: () {
-                    // Add expense
-                  },
+                  onTap: () => addTranscation(.expense),
                 ),
               ),
             ],
@@ -156,6 +287,84 @@ class _SavingHomePageState extends State<SavingHomePage> {
           //   ),
           // ),
         ],
+      ),
+    );
+  }
+
+  Widget _transList(List<MoneyTransaction> list) {
+    if (list.isEmpty) {
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Text(
+            'စာရင်း မရှိပါ...',
+            style: TextStyle(fontSize: 18, fontWeight: .w600),
+          ),
+        ),
+      );
+    }
+    return SliverList.builder(
+      itemCount: list.length,
+      itemBuilder: (context, index) => _transListItem(list[index]),
+    );
+  }
+
+  Widget _transListItem(MoneyTransaction trans) {
+    final isIncome = trans.isIncome;
+    // ရက်စွဲကို လှပစွာ ဖော်ပြရန် (ဥပမာ - Oct 12, 2026)
+    final formattedDate = DateFormat('MMM d, yyyy').format(trans.date);
+
+    return GestureDetector(
+      // onDoubleTap: () => showItemMenu(trans),
+      // onSecondaryTap: () => showItemMenu(trans),
+      onTap: () => showItemMenu(trans),
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
+        ),
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: Colors.blue.withValues(alpha: 0.1),
+            child: Icon(
+              trans.category.icon,
+              color: isIncome ? Colors.green : Colors.blueGrey,
+            ),
+          ),
+          title: Text(
+            trans.title,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                trans.description.isNotEmpty
+                    ? trans.description
+                    : trans.category.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: Colors.grey[600], fontSize: 13),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                trans.date.isToday
+                    ? 'ဒီနေ့'
+                    : formattedDate, // ရက်စွဲ Label ထည့်ထားခြင်း
+                style: TextStyle(color: Colors.grey[400], fontSize: 11),
+              ),
+            ],
+          ),
+          trailing: Text(
+            '${isIncome ? '+' : '-'}${formatMoney(trans.amount)} ကျပ်',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isIncome ? Colors.green : Colors.red,
+              fontSize: 15,
+            ),
+          ),
+        ),
       ),
     );
   }

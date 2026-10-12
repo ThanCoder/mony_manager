@@ -1,5 +1,5 @@
 import 'package:dual_store/dual_store.dart';
-import 'package:money_manager/core/models/work_site.dart';
+import 'package:money_manager/core/types/work_types.dart';
 
 class MyWorkSiteAdapter extends IDuBinaryMetaAdapter<MyWorkSite> {
   @override
@@ -52,6 +52,24 @@ class MyWorkSite extends IDuModel {
       role: .fromValue(json['role']),
       desc: json['desc'],
       createDate: DateTime.fromMillisecondsSinceEpoch(json['createDate']),
+    );
+  }
+
+  MyWorkSite copyWith({
+    String? id,
+    String? title,
+    WorkSiteType? type,
+    WorkRole? role,
+    String? desc,
+    DateTime? createDate,
+  }) {
+    return MyWorkSite(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      type: type ?? this.type,
+      role: role ?? this.role,
+      desc: desc ?? this.desc,
+      createDate: createDate ?? this.createDate,
     );
   }
 }

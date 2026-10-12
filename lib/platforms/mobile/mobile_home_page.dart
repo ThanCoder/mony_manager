@@ -5,9 +5,7 @@ import 'package:money_manager/core/controller/my_work_site_controller.dart';
 import 'package:money_manager/core/models/my_work_site.dart';
 import 'package:money_manager/core/utils/app_util.dart';
 import 'package:money_manager/platforms/components/menu/new_work_site_sheet.dart';
-import 'package:money_manager/platforms/pages/rubber/rubber_home_page.dart';
-import 'package:money_manager/platforms/pages/saving/saving_home_page.dart';
-import 'package:t_widgets/t_widgets.dart';
+import 'package:money_manager/routes.dart';
 
 class MobileHomePage extends StatefulWidget {
   const new({super.key});
@@ -29,14 +27,17 @@ class _MobileHomePageState extends State<MobileHomePage> {
   }
 
   void goSite(MyWorkSite site) {
+    goAutoMyWorkSite(context, site: site);
+  }
+
+  void editSite(MyWorkSite site) async {
     if (site.type == .saving) {
-      context.pushMaterialPageRoute(
-        builder: (mainCtx) => SavingHomePage(site: site),
-      );
-    }
-    if (site.type == .rubber) {
-      context.pushMaterialPageRoute(
-        builder: (mainCtx) => RubberHomePage(site: site),
+      NewWorkSiteSheet.show(
+        context,
+        editSite: site,
+        onSave: (updatedSite) {
+          con.box.updateByid(site.generatedId, value: updatedSite);
+        },
       );
     }
   }
@@ -138,16 +139,7 @@ class _MobileHomePageState extends State<MobileHomePage> {
                           ),
                         ),
 
-                        PopupMenuButton(
-                          padding: EdgeInsets.zero,
-                          itemBuilder: (context) => const [
-                            PopupMenuItem(value: 'edit', child: Text('Edit')),
-                            PopupMenuItem(
-                              value: 'delete',
-                              child: Text('Delete'),
-                            ),
-                          ],
-                        ),
+                        _popupItemMenu(site),
                       ],
                     ),
 
@@ -160,10 +152,11 @@ class _MobileHomePageState extends State<MobileHomePage> {
                           icon: site.type.typeIcon,
                           label: site.type.typeName,
                         ),
-                        _chip(
-                          icon: Icons.person_outline,
-                          label: site.role.roleName,
-                        ),
+                        if (site.role != .none)
+                          _chip(
+                            icon: Icons.person_outline,
+                            label: site.role.roleName,
+                          ),
                       ],
                     ),
 
@@ -194,6 +187,20 @@ class _MobileHomePageState extends State<MobileHomePage> {
           ),
         ),
       ),
+    );
+  }
+
+  PopupMenuButton<String> _popupItemMenu(MyWorkSite site) {
+    return PopupMenuButton(
+      padding: EdgeInsets.zero,
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'edit',
+          child: Text('Edit'),
+          onTap: () => editSite(site),
+        ),
+        PopupMenuItem(value: 'delete', child: Text('Delete')),
+      ],
     );
   }
 

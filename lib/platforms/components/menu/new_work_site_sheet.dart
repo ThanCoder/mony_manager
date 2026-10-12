@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:money_manager/core/models/my_work_site.dart';
-import 'package:money_manager/core/models/work_site.dart';
+import 'package:money_manager/core/types/work_types.dart';
 import 'package:uuid/v4.dart';
 
 class NewWorkSiteSheet extends StatefulWidget {
-  final void Function(MyWorkSite site)? onSave;
+  const new({super.key, this.onSave, this.editSite});
 
-  const NewWorkSiteSheet({super.key, this.onSave});
+  final MyWorkSite? editSite;
+  final void Function(MyWorkSite site)? onSave;
 
   static Future<void> show(
     BuildContext context, {
+    MyWorkSite? editSite,
     void Function(MyWorkSite site)? onSave,
   }) {
     return showModalBottomSheet(
@@ -18,7 +20,7 @@ class NewWorkSiteSheet extends StatefulWidget {
       useSafeArea: true,
       showDragHandle: true,
       builder: (_) {
-        return NewWorkSiteSheet(onSave: onSave);
+        return NewWorkSiteSheet(onSave: onSave, editSite: editSite);
       },
     );
   }
@@ -33,10 +35,23 @@ class _NewWorkSiteSheetState extends State<NewWorkSiteSheet> {
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
 
-  WorkSiteType _type = WorkSiteType.construction;
+  WorkSiteType _type = WorkSiteType.saving;
   WorkRole _role = WorkRole.worker;
 
   DateTime _createDate = DateTime.now();
+
+  @override
+  void initState() {
+    final editSite = widget.editSite;
+    if (editSite != null) {
+      _titleController.text = editSite.title;
+      _descController.text = editSite.desc;
+      _role = editSite.role;
+      _type = editSite.type;
+      _createDate = editSite.createDate;
+    }
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -64,6 +79,21 @@ class _NewWorkSiteSheetState extends State<NewWorkSiteSheet> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+    // update
+    if (widget.editSite != null) {
+      widget.onSave?.call(
+        widget.editSite!.copyWith(
+          title: _titleController.text,
+          desc: _descController.text,
+          role: _role,
+          type: _type,
+          createDate: _createDate,
+        ),
+      );
+
+      Navigator.pop(context);
+      return;
+    }
 
     final site = MyWorkSite(
       id: UuidV4().generate(),
@@ -85,16 +115,6 @@ class _NewWorkSiteSheetState extends State<NewWorkSiteSheet> {
 
   String _roleName(WorkRole role) {
     return role.roleName;
-  }
-
-  IconData _typeIcon(WorkSiteType type) {
-    return switch (type) {
-      WorkSiteType.construction => Icons.construction_outlined,
-      WorkSiteType.rubber => Icons.eco_outlined,
-      WorkSiteType.farm => Icons.agriculture_outlined,
-      WorkSiteType.saving => Icons.savings_outlined,
-      .none => Icons.no_accounts,
-    };
   }
 
   @override
@@ -159,7 +179,7 @@ class _NewWorkSiteSheetState extends State<NewWorkSiteSheet> {
                       value: type,
                       child: Row(
                         children: [
-                          Icon(_typeIcon(type), size: 20),
+                          Icon(type.typeIcon, size: 20),
                           const SizedBox(width: 10),
                           Text(_typeName(type)),
                         ],
@@ -244,7 +264,11 @@ class _NewWorkSiteSheetState extends State<NewWorkSiteSheet> {
               FilledButton.icon(
                 onPressed: _save,
                 icon: const Icon(Icons.add),
-                label: const Text('Create Work Site'),
+                label: Text(
+                  widget.editSite != null
+                      ? 'Update Work Site'
+                      : 'Create Work Site',
+                ),
                 style: FilledButton.styleFrom(
                   minimumSize: const Size.fromHeight(52),
                   backgroundColor: colorScheme.primary,

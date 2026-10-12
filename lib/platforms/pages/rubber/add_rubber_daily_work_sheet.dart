@@ -115,7 +115,7 @@ class _AddRubberDailyWorkSheetState extends State<AddRubberDailyWorkSheet> {
       initialDate: _endWorkTime,
       currentDate: _currentDate,
       firstDate: .new(2026),
-      lastDate: _endWorkTime,
+      lastDate: _currentDate,
     );
     if (res == null) return;
     if (!mounted) return;

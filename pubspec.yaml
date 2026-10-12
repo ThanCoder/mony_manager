@@ -1,5 +1,5 @@
 name: money_manager
-description: "A new Flutter project."
+description: "money manager app."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 repository: https://github.com/ThanCoder/mony_manager.git
 version: 0.1.0
@@ -28,6 +28,7 @@ dependencies:
   url_launcher: ^6.3.2
   path_provider: ^2.1.6
   uuid: ^4.6.0
+  intl: ^0.20.3
 
 dev_dependencies:
   flutter_test:
