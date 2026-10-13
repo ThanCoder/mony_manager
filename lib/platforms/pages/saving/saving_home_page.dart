@@ -317,7 +317,7 @@ class _SavingHomePageState extends State<SavingHomePage> {
     final formattedDate = DateFormat('MMM d, yyyy').format(trans.date);
 
     return GestureDetector(
-      onDoubleTap: () => showItemMenu(trans),
+      onLongPress: () => showItemMenu(trans),
       onSecondaryTap: () => showItemMenu(trans),
       onTap: () => showItemDetail(trans),
       child: Card(
