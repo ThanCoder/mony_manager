@@ -1,6 +1,6 @@
 import 'package:dual_store/dual_store.dart';
 import 'package:money_manager/core/datetime_x.dart';
-import 'package:money_manager/core/models/my_work_site.dart';
+import 'package:money_manager/core/models/worker/my_work_site.dart';
 
 class RubberDailyWorkAdapter extends IDuBinaryMetaAdapter<RubberDailyWork> {
   @override

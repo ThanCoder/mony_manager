@@ -1,24 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:money_manager/core/controller/i_controller.dart';
 import 'package:money_manager/core/controller/rubber_site_controller.dart';
-import 'package:money_manager/core/models/farm/rubber.dart';
-import 'package:money_manager/core/models/my_work_site.dart';
+import 'package:money_manager/core/models/rubber/rubber_daily_work.dart';
+import 'package:money_manager/core/models/worker/my_work_site.dart';
 import 'package:t_widgets/t_widgets.dart';
 
-class RubberDailyWorkListPage extends StatefulWidget {
-  const new({super.key, required this.site});
+class RubberDailyWorkChooserListPage extends StatefulWidget {
+  const new({super.key, required this.site, this.oldValues});
   final MyWorkSite site;
+  final List<RubberDailyWork>? oldValues;
 
   @override
-  State<RubberDailyWorkListPage> createState() =>
-      _RubberDailyWorkListPageState();
+  State<RubberDailyWorkChooserListPage> createState() =>
+      _RubberDailyWorkChooserListPageState();
 }
 
-class _RubberDailyWorkListPageState extends State<RubberDailyWorkListPage> {
+class _RubberDailyWorkChooserListPageState
+    extends State<RubberDailyWorkChooserListPage> {
   final con = ControllerManager.read<RubberSiteController>();
+
+  final choosed = <String, RubberDailyWork>{};
+
   void choose() async {
-    final res = con.list.where((e) => !e.paid).toList();
+    final res = choosed.values.toList();
     context.pop(res);
+  }
+
+  @override
+  void initState() {
+    final list = widget.oldValues;
+    if (list != null && list.isNotEmpty) {
+      for (var val in list) {
+        choosed[val.id] = val;
+      }
+    } else {
+      for (var val in con.list) {
+        if (!val.paid) {
+          choosed[val.id] = val;
+        }
+      }
+    }
+    super.initState();
   }
 
   @override
@@ -52,6 +74,20 @@ class _RubberDailyWorkListPageState extends State<RubberDailyWorkListPage> {
     );
   }
 
+  Widget _checkWidget(RubberDailyWork rubber) {
+    return Checkbox.adaptive(
+      value: choosed.keys.contains(rubber.id),
+      onChanged: (value) {
+        if (value!) {
+          choosed[rubber.id] = rubber;
+        } else {
+          choosed.remove(rubber.id);
+        }
+        setState(() {});
+      },
+    );
+  }
+
   Widget _dailyWorkItem(RubberDailyWork rubber) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -70,7 +106,7 @@ class _RubberDailyWorkListPageState extends State<RubberDailyWorkListPage> {
           ),
           child: Row(
             children: [
-              Checkbox.adaptive(value: !rubber.paid, onChanged: (value) {}),
+              _checkWidget(rubber),
               Container(
                 width: 46,
                 height: 46,

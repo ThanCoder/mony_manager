@@ -1,17 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:money_manager/core/models/farm/rubber.dart';
-import 'package:money_manager/core/models/farm/rubber_sell_record.dart';
-import 'package:money_manager/core/models/my_work_site.dart';
+import 'package:flutter/services.dart';
+import 'package:money_manager/core/controller/i_controller.dart';
+import 'package:money_manager/core/controller/rubber_site_controller.dart';
+import 'package:money_manager/core/models/rubber/rubber_daily_work.dart';
+import 'package:money_manager/core/models/rubber/rubber_sell_record.dart';
+import 'package:money_manager/core/models/worker/my_work_site.dart';
 import 'package:money_manager/core/types/weight_unit.dart';
 import 'package:money_manager/platforms/components/dialog/error_alert_dialog.dart';
-import 'package:money_manager/platforms/pages/rubber/rubber_daily_work_list_page.dart';
+import 'package:money_manager/platforms/pages/rubber/rubber_daily_work_chooser_list_page.dart';
 import 'package:t_widgets/t_widgets.dart';
 
+class NewRubberSellSheetResp {
+  final List<RubberDailyWork> dailyWorks;
+  final RubberSellRecord record;
+
+  const NewRubberSellSheetResp({
+    required this.dailyWorks,
+    required this.record,
+  });
+}
+
 class NewRubberSellSheet extends StatefulWidget {
-  const new({super.key, required this.site, required this.onSave});
+  const new({
+    super.key,
+    required this.site,
+    required this.onSave,
+    this.priceWeight,
+    this.buyerName,
+    this.editRecord,
+  });
 
   final MyWorkSite site;
-  final ValueChanged<RubberSellRecord> onSave;
+  final ValueChanged<NewRubberSellSheetResp> onSave;
+  final String? buyerName;
+  final double? priceWeight;
+  final RubberSellRecord? editRecord;
 
   @override
   State<NewRubberSellSheet> createState() => NewRubberSellSheetState();
@@ -19,7 +42,10 @@ class NewRubberSellSheet extends StatefulWidget {
   static Future<void> show(
     BuildContext context, {
     required MyWorkSite site,
-    required ValueChanged<RubberSellRecord> onSave,
+    required ValueChanged<NewRubberSellSheetResp> onSave,
+    String? buyerName,
+    double? priceWeight,
+    RubberSellRecord? editRecord,
   }) async {
     await showModalBottomSheet(
       context: context,
@@ -27,7 +53,13 @@ class NewRubberSellSheet extends StatefulWidget {
       useSafeArea: true,
       showDragHandle: true,
       builder: (context) {
-        return NewRubberSellSheet(site: site, onSave: onSave);
+        return NewRubberSellSheet(
+          site: site,
+          onSave: onSave,
+          priceWeight: priceWeight,
+          buyerName: buyerName,
+          editRecord: editRecord,
+        );
       },
     );
   }
@@ -41,8 +73,11 @@ class NewRubberSellSheetState extends State<NewRubberSellSheet> {
   final _priceController = TextEditingController();
   final _noteController = TextEditingController();
   final _workerSellMoneyCon = TextEditingController();
+  final _totalController = TextEditingController();
+
   WeightUnit _weightUnit = .pound;
   List<RubberDailyWork> dailyWorks = [];
+  final rubberSiteCon = ControllerManager.read<RubberSiteController>();
 
   DateTime _date = DateTime.now();
 
@@ -61,6 +96,27 @@ class NewRubberSellSheetState extends State<NewRubberSellSheet> {
   @override
   void initState() {
     super.initState();
+    if (widget.buyerName != null) {
+      _buyerController.text = widget.buyerName!;
+    }
+    if (widget.priceWeight != null) {
+      _priceController.text = widget.priceWeight!.toString();
+    }
+    final editRecord = widget.editRecord;
+    if (editRecord != null) {
+      _buyerController.text = editRecord.buyer;
+      _noteController.text = editRecord.note;
+      _priceController.text = editRecord.pricePerUnit.toString();
+      _totalController.text = editRecord.sellMoney.toString();
+      _workerSellMoneyCon.text = editRecord.workerSellMoney.toString();
+      _weightController.text = editRecord.weight.toString();
+      _weightUnit = editRecord.weightUnit;
+      for (var id in editRecord.rubberDailyWorkIds) {
+        final val = rubberSiteCon.map[id];
+        if (val == null) continue;
+        dailyWorks.add(val);
+      }
+    }
 
     _weightController.addListener(_refresh);
     _priceController.addListener(_refresh);
@@ -104,7 +160,10 @@ class NewRubberSellSheetState extends State<NewRubberSellSheet> {
 
   void chooseWorkDays() async {
     final res = await context.pushMaterialPageRoute<List<RubberDailyWork>>(
-      builder: (mainCtx) => RubberDailyWorkListPage(site: widget.site),
+      builder: (mainCtx) => RubberDailyWorkChooserListPage(
+        site: widget.site,
+        oldValues: dailyWorks,
+      ),
     );
     if (res == null) return;
     dailyWorks = res;
@@ -135,7 +194,9 @@ class NewRubberSellSheetState extends State<NewRubberSellSheet> {
       date: _date,
     );
 
-    widget.onSave(record);
+    widget.onSave(
+      NewRubberSellSheetResp(dailyWorks: dailyWorks, record: record),
+    );
 
     Navigator.pop(context);
   }
@@ -201,6 +262,7 @@ class NewRubberSellSheetState extends State<NewRubberSellSheet> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
                   labelText: 'အလေးချိန်',
@@ -217,6 +279,9 @@ class NewRubberSellSheetState extends State<NewRubberSellSheet> {
                   }
 
                   return null;
+                },
+                onChanged: (value) {
+                  _totalController.text = total.toString();
                 },
               ),
 
@@ -248,6 +313,7 @@ class NewRubberSellSheetState extends State<NewRubberSellSheet> {
                   decimal: true,
                 ),
                 textInputAction: TextInputAction.next,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: InputDecoration(
                   labelText: '1 ${_weightUnit.label} ဈေး',
                   hintText: '0',
@@ -264,12 +330,38 @@ class NewRubberSellSheetState extends State<NewRubberSellSheet> {
 
                   return null;
                 },
+                onChanged: (value) {
+                  _totalController.text = total.toString();
+                },
               ),
 
               const SizedBox(height: 20),
 
               // Total စျေးနှန်း
-              _total(context),
+              TextFormField(
+                controller: _totalController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(
+                  labelText: 'စုစုပေါင်းရောင်းရငွေ',
+                  hintText: '0',
+                  suffixText: 'ကျပ်',
+                  prefixIcon: Icon(Icons.payments_outlined),
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  final number = double.tryParse(value ?? '');
+
+                  if (number == null || number <= 0) {
+                    return 'ဈေးနှုန်းမှန်ကန်စွာထည့်ပါ';
+                  }
+
+                  return null;
+                },
+              ),
               const SizedBox(height: 20),
               _workerSellMoney(),
               const SizedBox(height: 20),
@@ -328,13 +420,25 @@ class NewRubberSellSheetState extends State<NewRubberSellSheet> {
             ),
           ),
         ListTile(
-          tileColor: dailyWorks.isEmpty ? col.onError : null,
+          tileColor: dailyWorks.isEmpty ? col.error : null,
           shape: RoundedRectangleBorder(borderRadius: .circular(14)),
           contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.work_history_outlined),
-          title: const Text('အလုပ်ရက်များ'),
-          subtitle: const Text('ဒီအရောင်းမှာ ပါဝင်တဲ့ အလုပ်ရက်တွေရွေးရန်'),
-          trailing: const Icon(Icons.chevron_right),
+          leading: Icon(
+            Icons.work_history_outlined,
+            color: dailyWorks.isNotEmpty ? null : col.onError,
+          ),
+          title: Text(
+            'အလုပ်ရက်များ',
+            style: TextStyle(color: dailyWorks.isNotEmpty ? null : col.onError),
+          ),
+          subtitle: Text(
+            'ဒီအရောင်းမှာ ပါဝင်တဲ့ အလုပ်ရက်တွေရွေးရန်',
+            style: TextStyle(color: dailyWorks.isNotEmpty ? null : col.onError),
+          ),
+          trailing: Icon(
+            Icons.chevron_right,
+            color: dailyWorks.isNotEmpty ? null : col.onError,
+          ),
           onTap: chooseWorkDays,
         ),
       ],
@@ -362,37 +466,6 @@ class NewRubberSellSheetState extends State<NewRubberSellSheet> {
 
         return null;
       },
-    );
-  }
-
-  Card _total(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Row(
-          children: [
-            const Icon(Icons.calculate_outlined, size: 28),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'စုစုပေါင်းရောင်းရငွေ',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${toMoneyLabel(total)} ကျပ်',
-                    style: Theme.of(context).textTheme.headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

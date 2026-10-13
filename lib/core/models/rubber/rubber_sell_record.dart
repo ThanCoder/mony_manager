@@ -111,3 +111,15 @@ class RubberSellRecord extends IDuModel {
     return '''RubberSellRecord(id: $id, workSiteId: $workSiteId, rubberDailyWorkIds: $rubberDailyWorkIds, weight: $weight, weightUnit: $weightUnit, pricePerUnit: $pricePerUnit, sellMoney: $sellMoney, workerSellMoney: $workerSellMoney, buyer: $buyer, note: $note, date: $date)''';
   }
 }
+
+extension RubberSellRecordX on List<RubberSellRecord> {
+  void sortDate({bool newest = true}) {
+    sort((a, b) {
+      if (newest) {
+        return b.date.compareTo(a.date);
+      } else {
+        return a.date.compareTo(b.date);
+      }
+    });
+  }
+}

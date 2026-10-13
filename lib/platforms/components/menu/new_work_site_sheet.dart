@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:money_manager/core/models/my_work_site.dart';
-import 'package:money_manager/core/types/work_types.dart';
+import 'package:money_manager/core/models/worker/my_work_site.dart';
+import 'package:money_manager/core/models/worker/work_types.dart';
 import 'package:uuid/v4.dart';
 
 class NewWorkSiteSheet extends StatefulWidget {

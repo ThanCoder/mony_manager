@@ -1,5 +1,6 @@
 import 'package:dual_store/dual_store.dart';
-import 'package:money_manager/core/types/work_types.dart';
+import 'package:money_manager/core/models/worker/work_types.dart';
+
 
 class MyWorkSiteAdapter extends IDuBinaryMetaAdapter<MyWorkSite> {
   @override

@@ -1,8 +1,8 @@
 import 'package:dart_core_extensions/dart_core_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:money_manager/core/models/farm/rubber.dart';
-import 'package:money_manager/core/models/my_work_site.dart';
+import 'package:money_manager/core/models/rubber/rubber_daily_work.dart';
+import 'package:money_manager/core/models/worker/my_work_site.dart';
 import 'package:uuid/v4.dart';
 
 class AddRubberDailyWorkSheet extends StatefulWidget {
@@ -19,7 +19,6 @@ class AddRubberDailyWorkSheet extends StatefulWidget {
   static Future<void> show(
     BuildContext context, {
     required List<MyWorkSite> sites,
-    required List<String> workers,
     void Function(RubberDailyWork work)? onSave,
     RubberDailyWork? work,
   }) {

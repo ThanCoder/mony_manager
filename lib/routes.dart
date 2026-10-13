@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:money_manager/core/models/my_work_site.dart';
+import 'package:money_manager/core/models/worker/my_work_site.dart';
 import 'package:money_manager/platforms/pages/rubber/rubber_home_page.dart';
 import 'package:money_manager/platforms/pages/saving/saving_home_page.dart';
 import 'package:t_widgets/t_widgets.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:money_manager/core/models/my_work_site.dart';
+import 'package:money_manager/core/models/worker/my_work_site.dart';
 
 class SavingDetailSheet extends StatelessWidget {
   final MyWorkSite site;

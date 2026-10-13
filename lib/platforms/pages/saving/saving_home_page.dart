@@ -1,9 +1,10 @@
 import 'package:dart_core_extensions/dart_core_extensions.dart';
-import 'package:dual_store/dual_store.dart';
 import 'package:flutter/material.dart';
+import 'package:money_manager/core/controller/i_controller.dart';
+import 'package:money_manager/core/controller/saving_controller.dart';
 import 'package:money_manager/core/datetime_x.dart';
-import 'package:money_manager/core/db.dart';
-import 'package:money_manager/core/models/my_work_site.dart';
+import 'package:money_manager/platforms/pages/saving/money_transcation_detail_sheet.dart';
+import 'package:money_manager/core/models/worker/my_work_site.dart';
 import 'package:money_manager/core/models/saving/money_transcation.dart';
 import 'package:money_manager/platforms/components/dialog/confirm_alert_dialog.dart';
 import 'package:money_manager/platforms/pages/saving/saving_transcation_sheet.dart';
@@ -23,14 +24,15 @@ class _SavingHomePageState extends State<SavingHomePage> {
   ColorScheme get colorScheme => theme.colorScheme;
   late MyWorkSite site;
 
+  final con = ControllerManager.read<SavingController>();
+
   @override
   void initState() {
     site = widget.site;
+    con.fetchList(site.id);
     super.initState();
   }
 
-  final db = DB.store;
-  DuBox<MoneyTransaction> get box => db.getBox<MoneyTransaction>();
   final currentDate = DateTime.now();
 
   Future<void> init() async {
@@ -59,8 +61,9 @@ class _SavingHomePageState extends State<SavingHomePage> {
     await SavingTranscationSheet.show(
       context,
       type: type,
+      site: widget.site,
       onSaved: (trans) {
-        box.add(trans);
+        con.add(trans);
       },
     );
   }
@@ -69,9 +72,10 @@ class _SavingHomePageState extends State<SavingHomePage> {
     await SavingTranscationSheet.show(
       context,
       type: trans.type,
+      site: widget.site,
       editTrans: trans,
       onSaved: (update) {
-        box.updateByid(trans.generatedId, value: update);
+        con.update(trans.generatedId, update);
       },
     );
   }
@@ -88,7 +92,11 @@ class _SavingHomePageState extends State<SavingHomePage> {
     if (trans.generatedId == -1) {
       return;
     }
-    box.deleteById(trans.generatedId);
+    con.delete(trans);
+  }
+
+  void showItemDetail(MoneyTransaction trans) async {
+    MoneyTranscationDetailSheet.show(context, transaction: trans);
   }
 
   void showItemMenu(MoneyTransaction trans) async {
@@ -141,22 +149,23 @@ class _SavingHomePageState extends State<SavingHomePage> {
             IconButton(onPressed: init, icon: Icon(Icons.refresh_outlined)),
         ],
       ),
-      body: CustomScrollView(
-        physics: AlwaysScrollableScrollPhysics(),
-        slivers: [
-          SliverList.list(children: [_header]),
-          StreamBuilder(
-            stream: box.getSearchBox(searchType: .linear).getAllStream(),
-            builder: (context, snapshot) {
-              final list = snapshot.data ?? [];
-              list.sortDate();
-              return SliverPadding(
+      body: StreamBuilder(
+        stream: con.events.whereType<SavingDataChanged>(),
+        builder: (context, asyncSnapshot) {
+          if (con.isLoading) {
+            return Center(child: TLoader.random());
+          }
+          return CustomScrollView(
+            physics: AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverList.list(children: [_header]),
+              SliverPadding(
                 padding: .symmetric(vertical: 10, horizontal: 15),
-                sliver: _transList(list),
-              );
-            },
-          ),
-        ],
+                sliver: _transList(con.list),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -233,18 +242,12 @@ class _SavingHomePageState extends State<SavingHomePage> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                StreamBuilder(
-                  stream: box.getSearchBox(searchType: .linear).getAllStream(),
-                  builder: (context, snapshot) {
-                    final list = snapshot.data ?? [];
-                    return Text(
-                      '${formatMoney(currentBlance(list))} MMK',
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onPrimaryContainer,
-                      ),
-                    );
-                  },
+                Text(
+                  '${formatMoney(currentBlance(con.list))} MMK',
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onPrimaryContainer,
+                  ),
                 ),
               ],
             ),
@@ -314,9 +317,9 @@ class _SavingHomePageState extends State<SavingHomePage> {
     final formattedDate = DateFormat('MMM d, yyyy').format(trans.date);
 
     return GestureDetector(
-      // onDoubleTap: () => showItemMenu(trans),
-      // onSecondaryTap: () => showItemMenu(trans),
-      onTap: () => showItemMenu(trans),
+      onDoubleTap: () => showItemMenu(trans),
+      onSecondaryTap: () => showItemMenu(trans),
+      onTap: () => showItemDetail(trans),
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
         elevation: 0,

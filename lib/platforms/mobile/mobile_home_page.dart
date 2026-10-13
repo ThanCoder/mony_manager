@@ -2,7 +2,7 @@ import 'package:dart_core_extensions/dart_core_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:money_manager/core/controller/i_controller.dart';
 import 'package:money_manager/core/controller/my_work_site_controller.dart';
-import 'package:money_manager/core/models/my_work_site.dart';
+import 'package:money_manager/core/models/worker/my_work_site.dart';
 import 'package:money_manager/core/utils/app_util.dart';
 import 'package:money_manager/platforms/components/menu/new_work_site_sheet.dart';
 import 'package:money_manager/routes.dart';

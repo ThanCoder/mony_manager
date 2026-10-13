@@ -3,11 +3,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:money_manager/core/controller/i_controller.dart';
 import 'package:money_manager/core/controller/my_work_site_controller.dart';
+import 'package:money_manager/core/controller/rubber_sell_record_controller.dart';
 import 'package:money_manager/core/controller/rubber_site_controller.dart';
+import 'package:money_manager/core/controller/saving_controller.dart';
 import 'package:money_manager/core/db.dart';
-import 'package:money_manager/core/models/farm/rubber.dart';
-import 'package:money_manager/core/models/farm/rubber_sell_record.dart';
-import 'package:money_manager/core/models/my_work_site.dart';
+import 'package:money_manager/core/models/rubber/rubber_daily_work.dart';
+import 'package:money_manager/core/models/rubber/rubber_sell_record.dart';
+import 'package:money_manager/core/models/worker/my_work_site.dart';
 import 'package:money_manager/core/models/saving/money_transcation.dart';
 import 'package:money_manager/core/utils/app_util.dart';
 import 'package:than_pkg_linux/than_pkg_linux.dart';
@@ -40,6 +42,8 @@ void main() async {
 
   ControllerManager.register(MyWorkSiteController());
   ControllerManager.register(RubberSiteController());
+  ControllerManager.register(RubberSellRecordController());
+  ControllerManager.register(SavingController());
   await ControllerManager.initAll();
 
   runApp(const PlatformApp());

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:money_manager/core/controller/i_controller.dart';
+import 'package:money_manager/core/controller/rubber_sell_record_controller.dart';
 import 'package:money_manager/core/controller/rubber_site_controller.dart';
-import 'package:money_manager/core/models/farm/rubber_sell_record.dart';
-import 'package:money_manager/core/models/my_work_site.dart';
+import 'package:money_manager/core/models/rubber/rubber_sell_record.dart';
+import 'package:money_manager/core/models/worker/my_work_site.dart';
 import 'package:money_manager/core/types/weight_unit.dart';
 import 'package:money_manager/platforms/pages/rubber/new_rubber_sell_sheet.dart';
+import 'package:money_manager/platforms/pages/rubber/rubber_sell_detail_sheet.dart';
+import 'package:money_manager/platforms/pages/rubber/rubber_sell_item_menu_sheet.dart';
 
 class RubberSellHomePage extends StatefulWidget {
   const new({super.key, required this.site});
@@ -16,81 +19,87 @@ class RubberSellHomePage extends StatefulWidget {
 }
 
 class _RubberSellHomePageState extends State<RubberSellHomePage> {
-  late final List<RubberSellRecord> records;
+  // late final List<RubberSellRecord> records;
 
   final con = ControllerManager.read<RubberSiteController>();
+  final sellCon = ControllerManager.read<RubberSellRecordController>();
 
   @override
   void initState() {
     super.initState();
 
-    records = [
-      RubberSellRecord(
-        id: '1',
-        workSiteId: widget.site.id,
-        rubberDailyWorkIds: ['work-1', 'work-2', 'work-3'],
-        weight: 82.5,
-        pricePerUnit: 1850,
-        weightUnit: .pound,
-        sellMoney: 152625,
-        workerSellMoney: 100000,
-        buyer: 'ဦးကျော်',
-        note: '',
-        date: DateTime(2026, 10, 7),
-      ),
-      RubberSellRecord(
-        id: '2',
-        workSiteId: widget.site.id,
-        rubberDailyWorkIds: ['work-4', 'work-5'],
-        weight: 64,
-        pricePerUnit: 1800,
-        weightUnit: .pound,
-        sellMoney: 115200,
-        workerSellMoney: 100000,
-        buyer: 'ကိုမောင်',
-        note: 'မနက်ပိုင်း ရောင်း',
-        date: DateTime(2026, 10, 3),
-      ),
-      RubberSellRecord(
-        id: '3',
-        workSiteId: widget.site.id,
-        rubberDailyWorkIds: ['work-6', 'work-7', 'work-8'],
-        weight: 91.5,
-        pricePerUnit: 1900,
-        weightUnit: .pound,
-        workerSellMoney: 100000,
-        sellMoney: 173850,
-        buyer: 'ဦးကျော်',
-        note: '',
-        date: DateTime(2026, 9, 28),
-      ),
-    ];
+    // records = [
+    //   RubberSellRecord(
+    //     id: '1',
+    //     workSiteId: widget.site.id,
+    //     rubberDailyWorkIds: ['work-1', 'work-2', 'work-3'],
+    //     weight: 82.5,
+    //     pricePerUnit: 1850,
+    //     weightUnit: .pound,
+    //     sellMoney: 152625,
+    //     workerSellMoney: 100000,
+    //     buyer: 'ဦးကျော်',
+    //     note: '',
+    //     date: DateTime(2026, 10, 7),
+    //   ),
+    //   RubberSellRecord(
+    //     id: '2',
+    //     workSiteId: widget.site.id,
+    //     rubberDailyWorkIds: ['work-4', 'work-5'],
+    //     weight: 64,
+    //     pricePerUnit: 1800,
+    //     weightUnit: .pound,
+    //     sellMoney: 115200,
+    //     workerSellMoney: 100000,
+    //     buyer: 'ကိုမောင်',
+    //     note: 'မနက်ပိုင်း ရောင်း',
+    //     date: DateTime(2026, 10, 3),
+    //   ),
+    //   RubberSellRecord(
+    //     id: '3',
+    //     workSiteId: widget.site.id,
+    //     rubberDailyWorkIds: ['work-6', 'work-7', 'work-8'],
+    //     weight: 91.5,
+    //     pricePerUnit: 1900,
+    //     weightUnit: .pound,
+    //     workerSellMoney: 100000,
+    //     sellMoney: 173850,
+    //     buyer: 'ဦးကျော်',
+    //     note: '',
+    //     date: DateTime(2026, 9, 28),
+    //   ),
+    // ];
   }
 
   double get totalMoney {
-    return records.fold(0, (sum, item) => sum + item.sellMoney);
+    return sellCon.list.fold(0, (sum, item) => sum + item.workerSellMoney);
   }
 
   double get totalWeight {
-    return records.fold(0, (sum, item) => sum + item.weight);
+    return sellCon.list.fold(0, (sum, item) => sum + item.weight);
   }
 
   void _showNewRubberSellSheet() async {
     await NewRubberSellSheet.show(
       context,
       site: widget.site,
-      onSave: (value) async {
-        for (var wdId in value.rubberDailyWorkIds) {
-          final wd = con.map[wdId];
-          if (wd == null) continue;
+      buyerName: sellCon.list.isEmpty ? null : sellCon.list.last.buyer,
+      priceWeight: sellCon.list.isEmpty ? null : sellCon.list.last.pricePerUnit,
+      onSave: (resp) async {
+        for (var wd in resp.dailyWorks) {
           await con.update(wd.generatedId, wd.copyWith(paid: true));
         }
-
-        setState(() {
-          records.insert(0, value);
-        });
+        await sellCon.add(resp.record);
       },
     );
+  }
+
+  void showDetail(RubberSellRecord item) async {
+    RubberSellDetailSheet.show(context, record: item);
+  }
+
+  void showItemMenu(RubberSellRecord item) async {
+    RubberSellItemMenuSheet.show(context, record: item, site: widget.site);
   }
 
   @override
@@ -104,16 +113,21 @@ class _RubberSellHomePageState extends State<RubberSellHomePage> {
       ),
       body: CustomScrollView(
         slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: SliverToBoxAdapter(
-              child: _SummaryCard(
-                totalMoney: totalMoney,
-                totalWeight: totalWeight,
-                count: records.length,
-                unit: .pound,
-              ),
-            ),
+          StreamBuilder(
+            stream: sellCon.events.whereType<RubberSellRecordDataChanged>(),
+            builder: (context, asyncSnapshot) {
+              return SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverToBoxAdapter(
+                  child: _SummaryCard(
+                    totalMoney: totalMoney,
+                    totalWeight: totalWeight,
+                    count: sellCon.list.length,
+                    unit: .pound,
+                  ),
+                ),
+              );
+            },
           ),
 
           SliverPadding(
@@ -129,12 +143,23 @@ class _RubberSellHomePageState extends State<RubberSellHomePage> {
 
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverList.builder(
-              itemCount: records.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _SellRecordCard(record: records[index]),
+            sliver: StreamBuilder(
+              stream: sellCon.events.whereType<RubberSellRecordDataChanged>(),
+              builder: (context, asyncSnapshot) {
+                return SliverList.builder(
+                  itemCount: sellCon.list.length,
+                  itemBuilder: (context, index) {
+                    final item = sellCon.list[index];
+                    return GestureDetector(
+                      onTap: () => showDetail(item),
+                      onLongPress: () => showItemMenu(item),
+                      onSecondaryTap: () => showItemMenu(item),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _SellRecordCard(record: item),
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -193,7 +218,7 @@ class _SummaryCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'စုစုပေါင်းအရောင်း',
+                    'စုစုပေါင်း ရရှိငွေ',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -315,81 +340,81 @@ class _SellRecordCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {},
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    child: const Icon(Icons.shopping_basket_outlined),
-                  ),
-                  const SizedBox(width: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                CircleAvatar(child: const Icon(Icons.shopping_basket_outlined)),
+                const SizedBox(width: 12),
 
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          record.buyer,
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                          ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        record.buyer,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
                         ),
-                        const SizedBox(height: 3),
-                        Text(
-                          _date(record.date),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        _date(record.date),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
                   ),
+                ),
 
-                  Text(
-                    _money(record.sellMoney),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-
-              const Divider(height: 24),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: _InfoItem(
-                      label: 'အလေးချိန်',
-                      value: '${record.weight} ${record.weightUnit.label}',
-                    ),
-                  ),
-                  Expanded(
-                    child: _InfoItem(
-                      label: '1 ${record.weightUnit.label} ဈေး',
-                      value: _money(record.pricePerUnit),
-                    ),
-                  ),
-                ],
-              ),
-
-              if (record.note.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    record.note,
-                    style: Theme.of(context).textTheme.bodySmall,
+                Text(
+                  _money(record.sellMoney),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
+            ),
+
+            const Divider(height: 24),
+
+            Row(
+              children: [
+                Expanded(
+                  child: _InfoItem(
+                    label: 'အလေးချိန်',
+                    value: '${record.weight} ${record.weightUnit.label}',
+                  ),
+                ),
+                Expanded(
+                  child: _InfoItem(
+                    label: '1 ${record.weightUnit.label} ဈေး',
+                    value: _money(record.pricePerUnit),
+                  ),
+                ),
+                Expanded(
+                  child: _InfoItem(
+                    label: 'အလုပ်လုပ်ခဲ့တဲ့ နေ့ရက်များ',
+                    value: record.rubberDailyWorkIds.length.toString(),
+                  ),
+                ),
+              ],
+            ),
+
+            if (record.note.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  record.note,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );

@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:money_manager/core/models/saving/money_transcation.dart';
+import 'package:money_manager/core/models/worker/my_work_site.dart';
 
 class SavingTranscationSheet extends StatefulWidget {
-  const new({super.key, required this.type, this.editTrans, this.onSaved});
+  const new({
+    super.key,
+    required this.type,
+    this.editTrans,
+    this.onSaved,
+    required this.site,
+  });
 
   final MoneyTransactionType type;
   final MoneyTransaction? editTrans;
   final void Function(MoneyTransaction trans)? onSaved;
+  final MyWorkSite site;
 
   @override
   State<SavingTranscationSheet> createState() => _SavingTranscationSheetState();
@@ -17,12 +25,14 @@ class SavingTranscationSheet extends StatefulWidget {
     required MoneyTransactionType type,
     MoneyTransaction? editTrans,
     void Function(MoneyTransaction trans)? onSaved,
+    required MyWorkSite site,
   }) async {
     await showModalBottomSheet(
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
       builder: (context) => SavingTranscationSheet(
+        site: site,
         type: type,
         editTrans: editTrans,
         onSaved: onSaved,
@@ -103,7 +113,7 @@ class _SavingTranscationSheetState extends State<SavingTranscationSheet> {
     final old = widget.editTrans;
 
     final trans = MoneyTransaction(
-      siteId: old?.siteId ?? '',
+      siteId: widget.site.id,
       id: old?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
       type: widget.type,
       category: _category,

@@ -2,7 +2,7 @@ import 'package:dual_store/dual_store.dart';
 import 'package:money_manager/core/controller/i_controller.dart';
 import 'package:money_manager/core/controller/my_work_site_controller.dart';
 import 'package:money_manager/core/db.dart';
-import 'package:money_manager/core/models/farm/rubber.dart';
+import 'package:money_manager/core/models/rubber/rubber_daily_work.dart';
 
 class RubberSiteDataChanged extends IControllerEvent {}
 

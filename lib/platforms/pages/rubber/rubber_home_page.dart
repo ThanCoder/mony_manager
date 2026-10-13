@@ -1,11 +1,12 @@
 import 'package:dart_core_extensions/dart_core_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:money_manager/core/controller/i_controller.dart';
+import 'package:money_manager/core/controller/rubber_sell_record_controller.dart';
 import 'package:money_manager/core/controller/rubber_site_controller.dart';
-import 'package:money_manager/core/models/farm/rubber.dart';
-import 'package:money_manager/core/models/my_work_site.dart';
-import 'package:money_manager/core/work_site_data.dart';
+import 'package:money_manager/core/models/rubber/rubber_daily_work.dart';
+import 'package:money_manager/core/models/worker/my_work_site.dart';
 import 'package:money_manager/platforms/pages/rubber/add_rubber_daily_work_sheet.dart';
+import 'package:money_manager/platforms/pages/rubber/rubber_daily_work_detail_sheet.dart';
 import 'package:money_manager/platforms/pages/rubber/rubber_item_menu.dart';
 import 'package:money_manager/platforms/pages/rubber/rubber_sell_home_page.dart';
 import 'package:t_widgets/t_widgets.dart';
@@ -23,11 +24,19 @@ class _RubberHomePageState extends State<RubberHomePage> {
   @override
   void initState() {
     site = widget.site;
+    init();
     super.initState();
   }
 
   final con = ControllerManager.read<RubberSiteController>();
+  final sellRecCon = ControllerManager.read<RubberSellRecordController>();
+
   final currentDate = DateTime.now();
+
+  Future<void> init() async {
+    await sellRecCon.fetchList(widget.site.id);
+  }
+
   int? get currentDayRubberSlice {
     for (var d in con.list) {
       if (d.endWorkTime.month == currentDate.month &&
@@ -71,24 +80,25 @@ class _RubberHomePageState extends State<RubberHomePage> {
       title: 'အလုပ်လုပ်ခဲ့တဲ့နေ့',
       value: '${con.list.length}',
     ),
-
-    InkWell(
-      borderRadius: .circular(18),
-      onTap: goRubberSellPage,
-      child: _SummaryCard(
-        icon: Icons.payments_outlined,
-        title: 'အရင်အပတ်က ဝင်ငွေ',
-        value: '0',
-        suffix: ' MMK >',
-      ),
+    StreamBuilder(
+      stream: sellRecCon.events.whereType<RubberSellRecordDataChanged>(),
+      builder: (context, asyncSnapshot) {
+        return InkWell(
+          borderRadius: .circular(18),
+          onTap: goRubberSellPage,
+          child: _SummaryCard(
+            icon: Icons.payments_outlined,
+            title: 'အရင်အပတ်က ဝင်ငွေ',
+            value: sellRecCon.list.isEmpty
+                ? '0'
+                : '${sellRecCon.list.last.workerSellMoney}',
+            suffix: ' MMK >',
+          ),
+        );
+      },
     ),
-    // _SummaryCard(
-    //   icon: Icons.payments_outlined,
-    //   title: 'ဝင်ငွေအားလုံး',
-    //   value: '450,000',
-    //   suffix: ' MMK',
-    // ),
   ];
+
   void goRubberSellPage() {
     context.pushMaterialPageRoute(
       builder: (mainCtx) => RubberSellHomePage(site: site),
@@ -99,7 +109,6 @@ class _RubberHomePageState extends State<RubberHomePage> {
     AddRubberDailyWorkSheet.show(
       context,
       sites: [site],
-      workers: workers,
       onSave: (work) {
         con.add(work);
       },
@@ -107,7 +116,12 @@ class _RubberHomePageState extends State<RubberHomePage> {
   }
 
   void showMenu() {}
-  void showRubberDetail(RubberDailyWork work) {}
+  void showRubberDetail(RubberDailyWork work) {
+    RubberDailyWorkDetailSheet.show(context, work: work);
+  }
+
+  void viewAll() {}
+
   void showRubberItemMenu(RubberDailyWork work) {
     RubberItemMenu.show(context, work, site: widget.site);
   }
@@ -123,7 +137,7 @@ class _RubberHomePageState extends State<RubberHomePage> {
         actions: [
           if (TPlatform.isDesktop)
             IconButton(
-              onPressed: con.fetchList,
+              onPressed: init,
               icon: const Icon(Icons.refresh_rounded),
             ),
           IconButton(onPressed: showMenu, icon: const Icon(Icons.more_vert)),
@@ -131,7 +145,7 @@ class _RubberHomePageState extends State<RubberHomePage> {
       ),
 
       body: RefreshIndicator.adaptive(
-        onRefresh: con.fetchList,
+        onRefresh: init,
         child: CustomScrollView(
           physics: AlwaysScrollableScrollPhysics(),
           slivers: [
@@ -181,12 +195,7 @@ class _RubberHomePageState extends State<RubberHomePage> {
                 ),
               ),
               const Spacer(),
-              TextButton(
-                onPressed: () {
-                  // View all
-                },
-                child: const Text('View All'),
-              ),
+              TextButton(onPressed: viewAll, child: const Text('View All')),
             ],
           ),
 
@@ -218,6 +227,9 @@ class _RubberHomePageState extends State<RubberHomePage> {
   Widget _dailyWorkItem(RubberDailyWork rubber) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final bgColor = rubber.paid
+        ? colorScheme.surfaceBright
+        : colorScheme.primaryContainer;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
@@ -229,9 +241,7 @@ class _RubberHomePageState extends State<RubberHomePage> {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: rubber.paid
-                ? colorScheme.surfaceContainer
-                : colorScheme.primaryContainer,
+            color: bgColor,
             borderRadius: .circular(14),
           ),
           child: Row(
@@ -255,13 +265,6 @@ class _RubberHomePageState extends State<RubberHomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Text(
-                    //   rubber.workerId,
-                    //   style: theme.textTheme.titleMedium?.copyWith(
-                    //     fontWeight: FontWeight.w600,
-                    //   ),
-                    // ),
-
                     const SizedBox(height: 4),
 
                     Text(
@@ -274,6 +277,7 @@ class _RubberHomePageState extends State<RubberHomePage> {
                   ],
                 ),
               ),
+              Expanded(child: Text(rubber.paid ? 'ရောင်းပြီး' : 'မရောင်းရသေး')),
 
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
