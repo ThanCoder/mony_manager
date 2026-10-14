@@ -5,10 +5,10 @@ import 'package:money_manager/core/controller/rubber_sell_record_controller.dart
 import 'package:money_manager/core/controller/rubber_site_controller.dart';
 import 'package:money_manager/core/models/rubber/rubber_daily_work.dart';
 import 'package:money_manager/core/models/worker/my_work_site.dart';
-import 'package:money_manager/platforms/pages/rubber/add_rubber_daily_work_sheet.dart';
-import 'package:money_manager/platforms/pages/rubber/rubber_daily_work_detail_sheet.dart';
-import 'package:money_manager/platforms/pages/rubber/rubber_item_menu.dart';
-import 'package:money_manager/platforms/pages/rubber/rubber_sell_home_page.dart';
+import 'package:money_manager/platforms/pages/rubber/rubber_home/add_rubber_daily_work_sheet.dart';
+import 'package:money_manager/platforms/pages/rubber/rubber_home/rubber_daily_work_detail_sheet.dart';
+import 'package:money_manager/platforms/pages/rubber/rubber_home/rubber_item_menu.dart';
+import 'package:money_manager/platforms/pages/rubber/rubber_sell/rubber_sell_home_page.dart';
 import 'package:t_widgets/t_widgets.dart';
 
 class RubberHomePage extends StatefulWidget {
@@ -34,7 +34,7 @@ class _RubberHomePageState extends State<RubberHomePage> {
   final currentDate = DateTime.now();
 
   Future<void> init() async {
-    await sellRecCon.fetchList(widget.site.id);
+    await con.fetchList(widget.site.id);
   }
 
   int? get currentDayRubberSlice {

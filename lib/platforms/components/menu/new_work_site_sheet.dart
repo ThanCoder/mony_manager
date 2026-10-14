@@ -109,14 +109,6 @@ class _NewWorkSiteSheetState extends State<NewWorkSiteSheet> {
     Navigator.pop(context);
   }
 
-  String _typeName(WorkSiteType type) {
-    return type.typeName;
-  }
-
-  String _roleName(WorkRole role) {
-    return role.roleName;
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -181,7 +173,7 @@ class _NewWorkSiteSheetState extends State<NewWorkSiteSheet> {
                         children: [
                           Icon(type.typeIcon, size: 20),
                           const SizedBox(width: 10),
-                          Text(_typeName(type)),
+                          Text(type.typeName),
                         ],
                       ),
                     ),
@@ -207,7 +199,7 @@ class _NewWorkSiteSheetState extends State<NewWorkSiteSheet> {
                 ),
                 items: [
                   for (final role in WorkRole.values)
-                    DropdownMenuItem(value: role, child: Text(_roleName(role))),
+                    DropdownMenuItem(value: role, child: Text(role.roleName)),
                 ],
                 onChanged: (value) {
                   if (value == null) return;

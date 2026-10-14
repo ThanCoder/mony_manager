@@ -12,6 +12,8 @@ class RubberSellRecordController extends IController {
   Map<String, RubberSellRecord> map = {};
 
   DuBox<RubberSellRecord> get box => db.getBox<RubberSellRecord>();
+  late final _workSiteCon = ControllerManager.read<MyWorkSiteController>();
+
   String siteId = '';
 
   @override
@@ -21,6 +23,11 @@ class RubberSellRecordController extends IController {
         .listen((event) {
           fetchList(siteId);
         });
+    _workSiteCon.events.whereType<MyWorkSiteDeleted>().listen((event) async {
+      await box.delete((value) => value.workSiteId == event.siteId);
+      fetchList(event.siteId);
+      print('[RubberSellRecordController]: deleted');
+    });
     fetchList(siteId);
   }
 

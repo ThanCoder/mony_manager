@@ -13,6 +13,7 @@ class SavingController extends IController {
   bool isLoading = false;
 
   DuBox<MoneyTransaction> get box => db.getBox<MoneyTransaction>();
+  late final _workSiteCon = ControllerManager.read<MyWorkSiteController>();
   String siteId = '';
 
   @override
@@ -22,6 +23,11 @@ class SavingController extends IController {
         .listen((event) {
           fetchList(siteId);
         });
+    _workSiteCon.events.whereType<MyWorkSiteDeleted>().listen((event) async {
+      await box.delete((value) => value.siteId == event.siteId);
+      print('[SavingController]: deleted');
+      fetchList(event.siteId);
+    });
     fetchList(siteId);
   }
 

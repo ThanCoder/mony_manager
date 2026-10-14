@@ -12,20 +12,38 @@ class RubberSiteController extends IController {
   Map<String, RubberDailyWork> map = {};
 
   DuBox<RubberDailyWork> get box => db.getBox<RubberDailyWork>();
+  late final _workSiteCon = ControllerManager.read<MyWorkSiteController>();
+  String siteId = '';
+  String? error;
 
   @override
   Future<void> init() async {
+    box.events.all.listen((event) {
+      if (event is BoxError) {
+        error = event.message;
+        addEvent(RubberSiteDataChanged());
+      }
+      if (event is BoxReadMetaError) {
+        error = event.message;
+        addEvent(RubberSiteDataChanged());
+      }
+    });
     ControllerManager.read<MyWorkSiteController>().events
         .whereType<MyWorkSiteDataChanged>()
         .listen((event) {
-          fetchList();
+          fetchList(siteId);
         });
-    fetchList();
+    _workSiteCon.events.whereType<MyWorkSiteDeleted>().listen((event) async {
+      await box.delete((value) => value.siteId.id == event.siteId);
+      fetchList(event.siteId);
+      print('[RubberSiteController]: deleted');
+    });
+    fetchList(siteId);
   }
 
-  Future<void> fetchList() async {
+  Future<void> fetchList(String siteId) async {
     addEvent(RubberSiteDataChanged());
-    list = await box.getAll();
+    list = await box.find((val) => val.siteId.id == siteId);
     list.sortDate();
     for (var d in list) {
       map[d.id] = d;

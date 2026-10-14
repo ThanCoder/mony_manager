@@ -7,7 +7,7 @@ import 'package:money_manager/core/models/rubber/rubber_sell_record.dart';
 import 'package:money_manager/core/models/worker/my_work_site.dart';
 import 'package:money_manager/core/types/weight_unit.dart';
 import 'package:money_manager/platforms/components/dialog/error_alert_dialog.dart';
-import 'package:money_manager/platforms/pages/rubber/rubber_daily_work_chooser_list_page.dart';
+import 'package:money_manager/platforms/pages/rubber/rubber_sell/rubber_daily_work_chooser_list_page.dart';
 import 'package:t_widgets/t_widgets.dart';
 
 class NewRubberSellSheetResp {

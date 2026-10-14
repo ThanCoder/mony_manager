@@ -4,6 +4,7 @@ import 'package:money_manager/core/controller/i_controller.dart';
 import 'package:money_manager/core/controller/my_work_site_controller.dart';
 import 'package:money_manager/core/models/worker/my_work_site.dart';
 import 'package:money_manager/core/utils/app_util.dart';
+import 'package:money_manager/platforms/components/dialog/confirm_alert_dialog.dart';
 import 'package:money_manager/platforms/components/menu/new_work_site_sheet.dart';
 import 'package:money_manager/routes.dart';
 
@@ -21,7 +22,7 @@ class _MobileHomePageState extends State<MobileHomePage> {
     NewWorkSiteSheet.show(
       context,
       onSave: (site) {
-        con.box.add(site);
+        con.add(site);
       },
     );
   }
@@ -30,16 +31,26 @@ class _MobileHomePageState extends State<MobileHomePage> {
     goAutoMyWorkSite(context, site: site);
   }
 
-  void editSite(MyWorkSite site) async {
-    if (site.type == .saving) {
-      NewWorkSiteSheet.show(
-        context,
-        editSite: site,
-        onSave: (updatedSite) {
-          con.box.updateByid(site.generatedId, value: updatedSite);
-        },
-      );
-    }
+  void _editSite(MyWorkSite site) async {
+    NewWorkSiteSheet.show(
+      context,
+      editSite: site,
+      onSave: (updatedSite) {
+        con.update(site.generatedId, updatedSite);
+      },
+    );
+  }
+
+  void _deleteSite(MyWorkSite site) async {
+    final conf = await showConfirmDialog(
+      context,
+      'Want To Delete?',
+      confirmText: 'Delete Forever!',
+      confirmColor: col.error,
+      confirmForegroundColor: col.onError,
+    );
+    if (!conf) return;
+    await con.delete(site);
   }
 
   ColorScheme get col => Theme.of(context).colorScheme;
@@ -197,9 +208,13 @@ class _MobileHomePageState extends State<MobileHomePage> {
         PopupMenuItem(
           value: 'edit',
           child: Text('Edit'),
-          onTap: () => editSite(site),
+          onTap: () => _editSite(site),
         ),
-        PopupMenuItem(value: 'delete', child: Text('Delete')),
+        PopupMenuItem(
+          value: 'delete',
+          child: Text('Delete'),
+          onTap: () => _deleteSite(site),
+        ),
       ],
     );
   }

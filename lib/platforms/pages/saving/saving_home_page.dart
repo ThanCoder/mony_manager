@@ -36,7 +36,7 @@ class _SavingHomePageState extends State<SavingHomePage> {
   final currentDate = DateTime.now();
 
   Future<void> init() async {
-    setState(() {});
+    await con.fetchList(widget.site.id);
   }
 
   double currentBlance(List<MoneyTransaction> list) {

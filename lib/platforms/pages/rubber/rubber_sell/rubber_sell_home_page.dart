@@ -5,9 +5,9 @@ import 'package:money_manager/core/controller/rubber_site_controller.dart';
 import 'package:money_manager/core/models/rubber/rubber_sell_record.dart';
 import 'package:money_manager/core/models/worker/my_work_site.dart';
 import 'package:money_manager/core/types/weight_unit.dart';
-import 'package:money_manager/platforms/pages/rubber/new_rubber_sell_sheet.dart';
-import 'package:money_manager/platforms/pages/rubber/rubber_sell_detail_sheet.dart';
-import 'package:money_manager/platforms/pages/rubber/rubber_sell_item_menu_sheet.dart';
+import 'package:money_manager/platforms/pages/rubber/rubber_home/new_rubber_sell_sheet.dart';
+import 'package:money_manager/platforms/pages/rubber/rubber_sell/rubber_sell_detail_sheet.dart';
+import 'package:money_manager/platforms/pages/rubber/rubber_sell/rubber_sell_item_menu_sheet.dart';
 
 class RubberSellHomePage extends StatefulWidget {
   const new({super.key, required this.site});
@@ -119,11 +119,15 @@ class _RubberSellHomePageState extends State<RubberSellHomePage> {
               return SliverPadding(
                 padding: const EdgeInsets.all(16),
                 sliver: SliverToBoxAdapter(
-                  child: _SummaryCard(
-                    totalMoney: totalMoney,
-                    totalWeight: totalWeight,
-                    count: sellCon.list.length,
-                    unit: .pound,
+                  child: Column(
+                    children: [
+                      _SummaryCard(
+                        totalMoney: totalMoney,
+                        totalWeight: totalWeight,
+                        count: sellCon.list.length,
+                        unit: .pound,
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -203,6 +207,7 @@ class _SummaryCard extends StatelessWidget {
           children: [
             Row(
               children: [
+                // ရရှိငွေ
                 Container(
                   width: 44,
                   height: 44,
@@ -224,6 +229,8 @@ class _SummaryCard extends StatelessWidget {
                     ),
                   ),
                 ),
+
+                //ရောင်းရငွေ
               ],
             ),
 

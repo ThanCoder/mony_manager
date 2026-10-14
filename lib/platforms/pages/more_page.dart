@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:money_manager/platforms/pages/db_setting/db_setting_page.dart';
 import 'package:t_widgets/t_widgets.dart';
 
 import '../components/dialog/app_about_dialog.dart';
@@ -22,6 +23,8 @@ class MorePage extends StatelessWidget {
           // CacheManagerListTile(
           //   cacheDirPath: AppUtil.instance.getPlatformCachePath(),
           // ),
+          DBSettingListTile(),
+
           DevRouteTile(),
           AppAboutDialogListTile(appDesc: 'ငွေကြေးစီမံရေး Application.'),
         ],
