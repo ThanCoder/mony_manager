@@ -150,6 +150,11 @@ class _RubberSellHomePageState extends State<RubberSellHomePage> {
             sliver: StreamBuilder(
               stream: sellCon.events.whereType<RubberSellRecordDataChanged>(),
               builder: (context, asyncSnapshot) {
+                if (sellCon.list.isEmpty) {
+                  return SliverToBoxAdapter(
+                    child: Center(child: Text('စာရင်း မရှိပါ....')),
+                  );
+                }
                 return SliverList.builder(
                   itemCount: sellCon.list.length,
                   itemBuilder: (context, index) {

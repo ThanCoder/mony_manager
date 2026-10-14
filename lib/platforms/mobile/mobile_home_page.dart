@@ -16,6 +16,12 @@ class MobileHomePage extends StatefulWidget {
 }
 
 class _MobileHomePageState extends State<MobileHomePage> {
+  @override
+  void initState() {
+    con.fetchList();
+    super.initState();
+  }
+
   final con = ControllerManager.read<MyWorkSiteController>();
 
   void createSite() async {
@@ -97,9 +103,12 @@ class _MobileHomePageState extends State<MobileHomePage> {
         ),
       );
     }
-    return ListView.builder(
-      itemCount: con.list.length,
-      itemBuilder: (context, index) => _listItem(con.list[index]),
+    return RefreshIndicator.adaptive(
+      onRefresh: con.fetchList,
+      child: ListView.builder(
+        itemCount: con.list.length,
+        itemBuilder: (context, index) => _listItem(con.list[index]),
+      ),
     );
   }
 
